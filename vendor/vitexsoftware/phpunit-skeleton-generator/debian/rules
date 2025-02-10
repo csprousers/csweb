@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_clean:
+	composer update
+	rm -f phpunit-skeleton-generator.phar
+	dh_clean
+
+override_dh_prepare:
+	php -d phar.readonly=off `which phar-composer` build 
+	dh_prepare
+
+override_dh_install:
+	dh_install
+	mv debian/phpunit-skelgen/usr/bin/phpunit-skeleton-generator.phar debian/phpunit-skelgen/usr/bin/phpunit-skelgen

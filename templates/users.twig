@@ -1,0 +1,920 @@
+{% extends "base.twig" %}
+
+{% block resources %}
+    <!-- DataTables -->
+    <link href={{asset('bower_components/datatables/media/css/jquery.dataTables.min.css')}}>
+{% endblock %}
+{% block modal %}
+    <!-- Modal Content -->
+    <div id="add-user-modal" class="modal fade" role="dialog" aria-labelledby="add-user-modal-label">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-user-modal-label">Add User</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="add-user-form" role="form">
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-username">Username</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="username" id="add-username" placeholder="Username"
+                                       data-minlength="4" data-minlength-error="Username must be at least 4 characters."
+                                       pattern="^[a-zA-Z]+[a-zA-Z0-9]*$" data-pattern-error="This field must start with a letter and cannot contain special characters." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row  has-feedback">
+                            <label class="col-sm-3 control-label" for="add-first-name">First Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="firstName" id="add-first-name" placeholder="First Name"
+                                       pattern="^[a-zA-Z]+$" data-pattern-error="This field must only contain letters." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-last-name">Last Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="lastName" id="add-last-name" placeholder="Last Name"
+                                       pattern="^[a-zA-Z]+$" data-pattern-error="This field must only contain letters." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-user-email">Email</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="email" id="add-user-email" placeholder="Email (optional)"
+                                       pattern="^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$" data-pattern-error="Invalid email address format.">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-user-phone">Phone</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="phone" id="add-user-phone" placeholder="Phone (optional)">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-user-role">Role</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="add-user-role" name="role">
+                                    {% for role in rolesList %}
+                                        {%if role.id == 1 %}
+                                            <option value={{ role.id}} selected>{{ role.name}}</option>
+                                        {%else%}
+                                            <option value={{ role.id}}>{{ role.name}}</option>
+                                        {%endif%}
+                                    {% endfor %}
+                                </select>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-password">Password</label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" name="password" id="add-password" data-minlength="8" 
+                                       data-minlength-error="Password must be at least 8 characters." placeholder="Password" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-password-confirm"></label>
+                            <div class="col-sm-9">
+                                <input type="password" class="form-control" name="password-confirm" id="add-password-confirm" data-match="#add-password" 
+                                       data-match-error="Passwords don't match." placeholder="Confirm Password" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+
+                        <!-- form-group -->
+                        <div class="form-group row">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary" id="add-button">Add</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+    <!-- Modal Content -->
+    <div id="edit-user-modal" class="modal fade" role="dialog" aria-labelledby="edit-user-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-user-modal-label">Update User</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="edit-user-form" role="form">
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-username">Username</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="edit-username" id="edit-username" placeholder="Username" disabled>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-first-name">First Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="edit-firstName" id="edit-first-name" placeholder="First Name"
+                                       pattern="^[a-zA-Z]+$" data-pattern-error="This field must only contain letters." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-last-name">Last Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="edit-lastName" id="edit-last-name" placeholder="Last Name"
+                                       pattern="^[a-zA-Z]+$" data-pattern-error="This field must only contain letters." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-user-email">Email</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="email" id="edit-user-email" placeholder="Email (optional)"
+                                       pattern="^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$" data-pattern-error="Invalid email address format.">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-user-phone">Phone</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="phone" id="edit-user-phone" placeholder="Phone (optional)">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-user-role">Role</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="edit-user-role" name="edit-role">
+                                    {% for role in rolesList %}
+                                        <option value={{ role.id}} selected>{{ role.name}}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                        <div class="hidden" id="edit-password-wrapper">
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-3 control-label" for="edit-password">Password</label>
+                                <div class="col-sm-9">
+                                    <input type="password" class="form-control" name="password" id="edit-password" data-minlength="8" 
+                                           data-minlength-error="Password must be at least 8 characters." placeholder="Password" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                <!-- col-sm-9 -->
+                            </div>
+                            <!-- form-group -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-3 control-label" for="edit-password-confirm"></label>
+                                <div class="col-sm-9">
+                                    <input type="password" class="form-control" name="password-confirm" id="edit-password-confirm" data-match="#edit-password" 
+                                           data-match-error="Passwords don't match." placeholder="Confirm Password" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                <!-- col-sm-9 -->
+                            </div>
+                            <!-- form-group -->
+                        </div>
+                        <!-- #edit-password-wrapper -->
+                        <div class="form-group">
+                            <div class="col-sm-9 offset-sm-3">
+                                <button type="submit" class="btn btn-primary" id="edit-button">Update</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-warning float-right" id="edit-password-reset">Change Password</button>
+                            </div>
+                            <!-- col-sm-9 -->
+                        </div>
+                        <!-- form-group -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+    <!-- Delete User Modal Content -->
+    <div id="delete-user-modal" class="modal fade" role="dialog" aria-labelledby="delete-user-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="delete-user-modal-label">Delete User</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the user?</p>
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-button">Yes</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- import progress modal -->
+    <div id=main-progress-modal class="modal" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h4>Processing....</h4>
+                    <div class="progress">
+                        <div style="width:0%" class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="2">
+                            <div class="progressText">0% Complete</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import User Modal Content -->
+    <div id="import-user-modal" class="modal fade" role="dialog" aria-labelledby="import-user-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="import-user-modal-label">Import Users</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-vertical" id="import-user-form" role="form">
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="import-modal-alert" class='alert-placeholder-cspro alert-margin-cspro' ></div>
+                                <!-- /.alert -->
+                            </div>
+                            <!-- /.col-12 -->
+                        </div>
+                        <!-- /.row -->
+                        <div class="form-group" >
+                            <label for="import-file-name" class="control-label">Import File:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="import-file-name" readonly>
+                                <label class="input-group-btn">
+                                    <span class="btn btn-primary">
+                                        Browse&hellip; <input type="file" id="import-file" style="display: none;" accept=".csv">
+                                    </span>
+                                </label>   
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input id="import-header-flag" type="checkbox"> CSV file has a header row
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <!-- /.form-vertical -->
+                </div>
+                <!-- /.modal-body -->
+                <div class="form-group">
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="import-button">Import</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="import-help-button">Help</button>
+                    </div>
+                    <!-- /.modal-footer -->
+                </div>
+                <!-- /.form-group -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.import-user-modal -->
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/adding_users.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div id="alert" class='alert-placeholder-cspro alert-margin-cspro' ></div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-2">
+                    <i class="fas fa-users fa-fw"></i> Users
+                    <div class="btn-toolbar float-right">
+                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="addUserButton">Add User</button>
+                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="importUserButton">Import Users</button>
+                    </div>
+
+                </div>
+                <!-- /.panel-heading -->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="table-responsive" class="table table-striped table-bordered table-hover" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th class="col-2">Username</th>
+                                    <th class="col-2">First Name</th>
+                                    <th class="col-2">Last Name</th>
+                                    <th class="col-2">Role</th>
+                                    <th class="col-2">Email</th>
+                                    <th class="col-3">Phone</th>
+                                    <th class="col-1">Edit</th>
+                                    <th class="col-1">Delete</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+{# content #}
+{% block scripts %}
+    <!-- Bootstrap Validator -->
+    <script src={{asset('dist/js/validator.min.js')}}></script>
+
+    <!-- Page-Level Scripts -->
+    <script>
+        "use strict";
+
+        // variables for importUsers
+        function showAlert(message, alertStyle) {
+            $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+            $("#alert").show();
+        }
+
+        function showImportAlert(message, alertStyle) {
+            $("#import-modal-alert").replaceWith("<div id='import-modal-alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+            $("#import-modal-alert").show();
+        }
+
+        $(document).ready(function () {
+            $("#users-nav-item").removeClass('nav-item');
+            $("#users-nav-item").addClass('nav-item active');
+            $('[data-toggle="popover"]').popover();
+            $.fn.dataTable.ext.errMode = 'none'; //user custom error processing for the datatable to handle redirects
+            var userTable = $('#table-responsive')
+                    .on('xhr.dt', function (e, settings, json, xhr) {
+                        if (xhr.status === 401 || xhr.status === 405) {
+                            window.location.href = "{{ path('logout') }}";
+                        }
+                        // Note no return - manipulate the data directly in the JSON object.
+                    })
+                    .on('error.dt', function (e, settings, techNote, message) {
+                        var strLogin = '<title>CSWeb: Login</title>';
+                        if (settings && settings.jqXHR && settings.jqXHR.responseText && settings.jqXHR.responseText.includes(strLogin)) {
+                            window.location.href = "{{ path('logout') }}";
+                            return;
+                        }
+                        console.log('An error has been reported by DataTables: ', message);
+                    }).DataTable({
+                "processing": true,
+                "searching": true,
+                "paging": true,
+                "order": [[0, "asc"]],
+                "columnDefs": [
+                    {"name": "username", "orderable": true, "searchable": true, "targets": 0},
+                    {"name": "firstName", "orderable": true, "searchable": true, "targets": 1},
+                    {"name": "lastName", "orderable": true, "searchable": true, "targets": 2},
+                    {"name": "role", "orderable": true, "searchable": true, "targets": 3},
+                    {"name": "email", "orderable": true, "searchable": true, "targets": 4},
+                    {"name": "phone", "orderable": true, "searchable": true, "targets": 5},
+                    {"orderable": false, "targets": 6},
+                    {"orderable": false, "targets": 7}
+                ],
+                "ajax": "{{ url('usersJson') }}",
+                "serverSide": true,
+                "columns": [
+                    {"data": "username"},
+                    {"data": "firstName"},
+                    {"data": "lastName"},
+                    {"data": function (data, type, row) {
+                            var currentRole = data.role;
+                            var roleList = {{rolesList|json_encode|raw}};
+                                    data = "No Role Defined";
+                            //var role = data.role;
+                            for (var i = 0; i < roleList.length; i++) {
+                                if (currentRole === roleList[i].id) {
+                                    data = roleList[i].name;
+                                    return data;
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {"data": "email"},
+                    {"data": "phone"},
+                    {"defaultContent": '<a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a>'},
+                    {"render": function (data, type, row) {
+                            var retVal;
+                            if ('{{userinfo}}' == row['username'])
+                                //retVal = null;
+                                retVal = '<a href="javascript:;" class="isDisabled" style="color:grey; cursor:default;"><i class="fas fa-trash-alt fa-fw"></i></a>';
+                            else
+                                retVal = '<a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a>';
+                            return retVal;
+                        }
+                    }
+                ]
+            }); //DataTable
+
+            // Bootstrap Validator will not validate hidden/disabled fields
+            $.fn.validator.Constructor.INPUT_SELECTOR += ':enabled:visible';
+
+            $("#importUserButton").click(function () {
+                var $input = $("#import-file");
+                $input.replaceWith($input.val('').clone(true));
+                $("#import-header-flag").removeAttr('checked'); //reset the checkbox header flag
+                $("#import-file-name").val('');
+                $("#import-modal-alert").hide();
+                $("#import-user-modal").modal("show");
+            });
+
+            $("#import-file").change(function () {
+                //submit the form here;
+                var files = $("#import-file").get(0).files;
+                var numFiles = files ? files.length : 0;
+                var label = $("#import-file").val().replace(/\\/g, '/').replace(/.*\//, '');
+                $("#import-file-name").val(label);
+                console.log(numFiles);
+                console.log(label);
+                // $("#import-file-name").val(files.name);
+            });
+
+            //import the selected csv file 
+            $("#import-button").on("click", function (event) {
+                event.preventDefault();
+                var $modal = $("#import-user-modal");
+                var files = $("#import-file").get(0).files;
+                var numFiles = files ? files.length : 0;
+                if (numFiles === 0) {
+                    showImportAlert('Please select a file to import', "alert alert-danger");
+                } else {
+                    $modal.modal("hide");
+                    // Load up a progress modal
+                    $('.progress .progressText').text(0 + "% Complete");
+                    $('.progress-bar').css('width', 0 + "%");
+                    $('.progress-bar').css('aria-valuenow', '1');
+                    $("#main-progress-modal").modal('show');
+                    //process the import and show the spinner
+                    importUsers();
+                }
+
+            });
+
+            $("#import-help-button").on("click", function (event) {
+                event.preventDefault();
+                var msg = '<p>To import multiple users a CSV file is needed. Each row specifies a single user which ';
+                msg = msg + 'has the following format: username, first name, last name, user role, password, email, phone number.</p>';
+                msg = msg + '<br>';
+                msg = msg + 'CSV Field Rules:';
+                msg = msg + '<ul><li>First and last name must only contain letters</li>';
+                msg = msg + '<li>The role can be one of two built-in roles or a custom role</li>';
+                msg = msg + '<li>The password must have least 8 characters</li>';
+                msg = msg + '<li>Email and phone number can be blank</li></ul>';
+                msg = msg + '<br>CSV Example Row:';
+                msg = msg + '<ul><li>user007, James, Bond, Administrator, PasSwOrD7, b7@gmail.com, 123-4567</li></ul>';
+                msg = msg + '<br>';
+                msg = msg + '<p><a href="https://www.csprousers.org/help/CSWeb/adding_users.html" target="_blank">See Adding Users for additional information</a></p>';
+                showImportAlert(msg, "alert alert-info");
+            });
+
+            // Add user functionality
+            $("#addUserButton").click(function () {
+                $("#add-user-modal").modal("show");
+            });
+
+            $("#add-user-modal").on("shown.bs.modal", function () {
+                AddUser.initBootstrapValidator();
+                $("#add-username").focus();
+            });
+
+            $("#add-user-modal").on("hidden.bs.modal", function () {
+                $("#add-user-form").unbind("submit");
+                $(this).find('form')[0].reset();
+                $("#add-user-form").validator("destroy");
+            });
+
+            var AddUser = (function () {
+                // Private
+                var submit = function (event) {
+                    event.preventDefault();
+                    var $modal = $("#add-user-modal");
+                    var user = {};
+                    // get the data from your modal
+                    $modal.find("input").each(function () {
+                        if ($(this).attr("name") != 'password-confirm')
+                            user[$(this).attr("name")] = $(this).val();
+                    });
+                    user['role'] = $('#add-user-role').val();
+                    $modal.modal("hide");
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('users') }}",
+                        data: JSON.stringify(user),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                userTable.draw();
+                                showAlert("The user " + user['username'] + " was successfully added.", "alert alert-success");
+                            }
+                        },
+                        error: function (response) {
+                            //in case of  timeout  the redirect response comes with html content and status code as 200
+                            //this causes an error as the response text is not json but datatype in ajax is set to json
+                            //in this case redirect to logout
+                            if (response.status === 200 || response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                var errResponse = JSON.parse(response.responseText);
+                                var message = errResponse.message != null ? errResponse.message : response.responseText;
+                                showAlert(message, "alert alert-danger");
+                            }
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                }
+
+                // Public
+                var initBootstrapValidator = function () {
+                    $("#add-user-form").validator().on("submit", function (event) {
+                        // If the form is invalidated by Bootstrap Validator then the submit event calls
+                        // preventDefault(). Use isDefaultPrevented() to detect whether form is valid.
+                        if (!event.isDefaultPrevented()) {
+                            submit(event);
+                        }
+                    });
+                };
+
+                return {
+                    initBootstrapValidator: initBootstrapValidator
+                };
+            })();
+
+            if (sessionStorage.getItem("add-user-success")) {
+                showAlert("The user " + sessionStorage.getItem("add-user-success") + " was successfully added.", "alert alert-success");
+                sessionStorage.clear();
+            } else if (sessionStorage.getItem("add-user-failure")) {
+                showAlert("The user " + sessionStorage.getItem("add-user-failure") + " was not added.", "alert alert-danger");
+                sessionStorage.clear();
+            }
+
+            // Edit user functionality
+            $('#table-responsive tbody').on('click', 'a.edit-button-class', function (event) {
+                var rowNumber = ($(event.target).closest("tr"))[0];
+                var user = (userTable.row(rowNumber).data());
+
+                $("#edit-username").val(user["username"]);
+                $("#edit-first-name").val(user["firstName"]);
+                $("#edit-last-name").val(user["lastName"]);
+                $("#edit-user-email").val(user["email"]);
+                $("#edit-user-phone").val(user["phone"]);
+                $("#edit-user-role").val(user['role']);
+                $("#edit-user-modal").modal("show");
+            });
+
+            $("#edit-user-modal").on("shown.bs.modal", function () {
+                EditFormValidation.on();
+                $("#edit-first-name").focus();
+            })
+
+            $("#edit-user-modal").on("hidden.bs.modal", function () {
+                EditFormValidation.off();
+            })
+
+            $("#edit-password-reset").on("click", function () {
+                EditFormValidation.togglePasswordFields();
+                $(this).blur();
+            });
+
+            var EditFormValidation = (function () {
+                // Private
+                var isPasswordFieldsShown = false;
+                var form = $("#edit-user-form");
+                var passwordWrapper = $("#edit-password-wrapper");
+                var passwordField = $("#edit-password");
+                var passwordConfirmField = $("#edit-password-confirm");
+                var submit = $("#edit-button");
+
+                var toggleOn = function () {
+                    form.unbind("submit");
+                    form.validator("destroy");
+                    EditUser.initBootstrapValidator();
+                    // Validate, so previous warnings persist
+                    form.validator("validate");
+                    // Don't validate password fields yet
+                    passwordWrapper.removeClass("hidden");
+                    form.validator("update");
+                    $("#edit-password").focus();
+                    isPasswordFieldsShown = true;
+                };
+
+                var toggleOff = function () {
+                    passwordField.val("");
+                    passwordConfirmField.val("");
+                    passwordWrapper.addClass("hidden");
+                    form.validator("update");
+                    $("#edit-first-name").focus();
+                    isPasswordFieldsShown = false;
+                };
+
+                // Public
+                var on = function () {
+                    EditUser.initBootstrapValidator();
+                };
+
+                var off = function () {
+                    passwordField.val("");
+                    passwordConfirmField.val("");
+                    passwordWrapper.addClass("hidden");
+                    form.unbind("submit");
+                    form.validator("destroy");
+                    isPasswordFieldsShown = false;
+                };
+
+                var togglePasswordFields = function () {
+                    if (isPasswordFieldsShown) {
+                        toggleOff();
+                    } else {
+                        toggleOn();
+                    }
+                };
+
+                return {
+                    on: on,
+                    off: off,
+                    togglePasswordFields: togglePasswordFields
+                };
+            })();
+
+            var EditUser = (function () {
+                // Private
+                var submit = function (event) {
+                    event.preventDefault();
+                    var $modal = $("#edit-user-modal");
+                    var user = {};
+                    // get the data from your modal
+                    $modal.find("input").each(function () {
+                        var attribName = $(this).attr("name");
+                        attribName = attribName.substr(attribName.indexOf('-') + 1);
+                        if (attribName !== "confirm") {
+                            user[attribName] = $(this).val();
+                        }
+                    });
+                    user['role'] = $("#edit-user-role").val();
+                    $modal.modal("hide");
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url('users') }}" + user.username,
+                        data: JSON.stringify(user),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                var rowNumber = ($(event.target).closest("tr"))[0];
+                                userTable.row(rowNumber).draw();
+                                showAlert(response.description, "alert alert-success");
+                            } else {
+                                showAlert(response.description, "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            if (response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            }
+                            var errResponse = JSON.parse(response.responseText);
+                            var message = errResponse.message != null ? errResponse.message : response.responseText;
+                            showAlert(message, "alert alert-danger");
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                };
+
+                // Public
+                var initBootstrapValidator = function () {
+                    $("#edit-user-form").validator().on("submit", function (event) {
+                        // If the form is invalidated by Bootstrap Validator then the submit event calls
+                        // preventDefault(). Use isDefaultPrevented() to detect whether form is valid.
+                        if (!event.isDefaultPrevented()) {
+                            submit(event);
+                        }
+                    });
+                };
+
+                return {
+                    initBootstrapValidator: initBootstrapValidator
+                };
+            })();
+
+            // Delete user functionality
+            (function () {
+                var rowNumber
+                $('#table-responsive tbody').on('click', '.delete-button-class', function (event) {
+
+                    rowNumber = ($(event.target).closest("tr"))[0];
+
+                    var username = (userTable.row(rowNumber).data())["username"];
+
+                    var modalText = ' Are you sure you want to delete the user \"' + username + '\"?';
+
+                    $("#delete-user-modal").find('.modal-body').text(modalText);
+                    $("#delete-user-modal").modal("show");
+
+                });
+
+                $("#delete-button").on("click", function (event) {
+                    event.preventDefault();
+                    $("#delete-user-modal").modal("hide");
+                    // get the user name of the row
+                    var username = (userTable.row(rowNumber).data())["username"]
+                    $.ajax({
+                        type: "DELETE",
+                        url: "{{ url('users') }}" + username,
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                showAlert(response.description, "alert alert-success");
+                                userTable.row(rowNumber).remove().draw();
+                            } else {
+                                showAlert(response.description, "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            if (response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            }
+                        },
+                        failure: function (errMsg) {
+                            //alert("error!");
+                        }
+                    });
+                });
+            })();
+
+            // Spinner functionality
+            var $body = $("body");
+            $(document).ajaxStart(function (event, request, settings) {
+                $body.addClass("loading");
+            });
+
+            $(document).ajaxComplete(function (event, request, settings) {
+                $body.removeClass("loading");
+            });
+
+
+            function importUsers() {
+                var files = $("#import-file").get(0).files;
+                var file = files[0];
+
+                var reader = new FileReader();
+                var authToken = '{{ accessToken }}';
+                reader.onload = function (e) {
+                    var rawBytes = e.target.result;
+                    //create a html request to import users by directly calling the rest api users url 
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function (evt) {
+                        if (xhr.readyState === 4) {//done
+                            $("#main-progress-modal").modal('hide');
+                            if (xhr.status === 401 || xhr.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            } else if (xhr.status !== 200) {
+                                var responseText = evt.currentTarget.response.toString();
+                                var errResponse = JSON.parse(responseText);
+                                var message = errResponse.message != null ? errResponse.message : responseText;
+                                showAlert(message, "alert alert-danger");
+                                $("#main-progress-modal").modal('hide');
+                            }
+                            userTable.draw();
+                        }
+                    };
+
+                    xhr.addEventListener("progress", function (evt) {
+                        //console.log("The response status " + evt.currentTarget.status);
+                        var lines = evt.currentTarget.response.toString().split("\\n");
+                        // alert(lines[0]);
+                        if (evt.currentTarget.status == 200 && lines.length) {
+                            //console.log("number of lines " + lines.length);
+                            var jsonResponse = lines[lines.length - 1];
+
+                            //console.log("before :" + jsonResponse);
+                            //remove line feeds for json parser
+                            jsonResponse = jsonResponse.replace(/\\n/g, "");
+                            var response = JSON.parse(jsonResponse);
+                            if (response.code == 200 || response.code == 206) {
+                                if (response.progress != 100 && response.code == 206) {
+                                    $('.progress .progressText').text(response.progress + "% Complete");
+                                    $('.progress-bar').css('width', response.progress + "%");
+                                    $('.progress-bar').css('aria-valuenow', '1');
+                                    $("#main-progress-modal").modal('show');
+                                } else {
+                                    $('.progress .progressText').text(response.progress + "% Complete");
+                                    $('.progress-bar').css('width', response.progress + "%");
+                                    $('.progress-bar').css('aria-valuenow', '1');
+                                    $("#main-progress-modal").modal('show');
+
+                                    // Give the progress bar at least 3/4 of a second to display
+                                    setTimeout(function () {
+                                        if (response.count == 1) {
+                                            showAlert(response.description + ". " + response.count + " row processed.", "alert alert-success");
+                                        } else {
+                                            showAlert(response.description + ". " + response.count + " rows processed.", "alert alert-success");
+                                        }
+                                        $("#main-progress-modal").modal('hide');
+                                    }, 750);
+                                }
+                            } else {//error
+                                var responseText = evt.currentTarget.response.toString();
+                                var errResponse = JSON.parse(responseText);
+                                var message = errResponse.message != null ? errResponse.message : responseText;
+                                showAlert(message, "alert alert-danger");
+                                $("#main-progress-modal").modal('hide');
+                            }
+                        } else {
+                            /*var message = response.message != null ? response.message : response.description;
+                             showAlert(message, "alert alert-danger");
+                             $("#main-progress-modal").modal('hide');*/
+                        }
+                    }, false);
+
+                    //send the request to rest api import users
+                    var usersAPIURL = "{{apiUrl}}" + "users";
+                    xhr.open('POST', usersAPIURL, true);
+
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + authToken);
+                    xhr.setRequestHeader('Content-Type', 'text/plain');
+                    xhr.setRequestHeader('Accept', 'application/json');
+                    if ($('#import-header-flag').is(':checked')) {
+                        xhr.setRequestHeader('x-csw-data-header', "1");
+                    }
+                    xhr.send(rawBytes);
+                } //reader.onload
+
+                reader.readAsArrayBuffer(file);
+            }
+        }); // $(document).ready
+    </script>
+{% endblock %}
+{# scripts #}

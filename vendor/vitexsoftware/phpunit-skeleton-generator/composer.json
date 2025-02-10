@@ -1,0 +1,41 @@
+{
+    "name": "vitexsoftware/phpunit-skeleton-generator",
+    "description": "Tool that can generate skeleton test classes from production code classes and vice versa",
+    "keywords": ["phpunit", "xunit", "testing", "skeleton"],
+    "homepage": "https://github.com/sebastianbergmann/phpunit-skeleton-generator",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Vítězslav Dvořák",
+            "email": "info@vitexsoftware.cz",
+            "role": "keeper"
+        },
+        {
+            "name": "Sebastian Bergmann",
+            "email": "sebastian@phpunit.de",
+            "role": "lead"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/VitexSoftware/phpunit-skeleton-generator/issues"
+    },
+    "require": {
+        "php": ">=7.1",
+        "phpunit/php-text-template": "*",
+        "sebastian/version": "*",
+        "symfony/console": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "mikey179/vfsstream": "*"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    },
+    "bin": [
+        "phpunit-skelgen"
+    ]
+}
+

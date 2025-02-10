@@ -1,0 +1,975 @@
+{% extends "base.twig" %}
+{% block resources %}
+    <!-- DataTables -->
+    <link href={{asset('bower_components/datatables/media/css/jquery.dataTables.min.css')}}>
+{% endblock %}
+{% block modal %}
+    <!-- Add Role Modal Content -->
+    <div id="add-role-modal" class="modal fade" role="dialog" aria-labelledby="add-role-modal-label">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-role-modal-label">Add Role</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="add-role-form" role="form">
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="add-role-name">Role Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="role-name" id="add-role-name" placeholder="Role Name"
+                                       data-minlength="4" data-minlength-error="Role name must be at least 4 characters." maxlength="63"
+                                       pattern="^[a-zA-Z]+[a-zA-Z0-9 ]*$" data-pattern-error="This field must start with a letter and cannot contain special characters (except spaces)." required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-12 col-sm-9 -->
+                        </div>
+                        <!-- Checkboxes for dashboard permissions -->
+                        <div class="form-group row">
+                            <label class="col-sm-3 control-label">Dashboards</label>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-data-checkbox" class="add-checkbox-group"> Data
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-reports-checkbox" class="add-checkbox-group"> Reports
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-apps-checkbox" class="add-checkbox-group"> Apps
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row">
+                            <div class="col-sm-3 offset-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-users-checkbox" class="add-checkbox-group"> Users
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-roles-checkbox" class="add-checkbox-group"> Roles
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="add-settings-checkbox" class="add-checkbox-group"> Settings
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- form-group -->
+                        <!-- Table for dictionary permissions -->
+                        <table id="add-data-table" class="table table-striped table-bordered table-hover" style="width:100%"></table>
+                        <div class="form-group row">
+                            <div class="col-sm-4 offset-sm-8">
+                                <button type="submit" class="btn btn-primary" id="add-role-yes-button">Add</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                            </div>
+                            <!-- col-12 col-sm-offset-8 col-sm-4 -->
+                        </div>
+                        <!-- form-group -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+            <!-- /.modal-content -->
+            <div  id="add-modal-spinner" class="spinner"><!-- Place at bottom of page --></div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+    <!-- Edit Role Modal Content -->
+    <div id="edit-role-modal" class="modal fade" role="dialog" aria-labelledby="edit-role-modal-label">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="edit-role-modal-label">Edit Role</h4>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="edit-role-form" role="form">
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-3 control-label" for="edit-role-name">Role Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="role-name" id="edit-role-name" placeholder="Role Name"
+                                       data-minlength="4" data-minlength-error="Role name must be at least 4 characters." maxlength="20"
+                                       pattern="^[a-zA-Z]+[a-zA-Z0-9]*$" data-pattern-error="This field must start with a letter and cannot contain special characters." disabled>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- col-12 col-sm-9 -->
+                        </div>
+                        <!-- Checkboxes for dashboard permissions -->
+                        <div class="form-group row">
+                            <label class="col-sm-3 control-label">Dashboards</label>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-data-checkbox" class="edit-checkbox-group"> Data
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-reports-checkbox" class="edit-checkbox-group"> Reports
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-apps-checkbox" class="edit-checkbox-group"> Apps
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- form-group -->
+                        <div class="form-group row">
+                            <div class="col-sm-3 offset-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-users-checkbox" class="edit-checkbox-group"> Users
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-roles-checkbox" class="edit-checkbox-group"> Roles
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="edit-settings-checkbox" class="edit-checkbox-group"> Settings
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- form-group -->
+                        <!-- Table for dictionary permissions -->
+                        <table id="edit-data-table" class="table table-striped table-bordered table-hover" style="width:100%"></table>
+                        <div class="form-group row">
+                            <div class="col-sm-4 offset-sm-8">
+                                <button type="submit" class="btn btn-primary" id="edit-role-yes-button">Update</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                            </div>
+                            <!-- col-12 col-sm-offset-8 col-sm-4 -->
+                        </div>
+                        <!-- form-group -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+            <!-- /.modal-content -->
+            <div  id="edit-modal-spinner" class="spinner"><!-- Place at bottom of page --></div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+
+    <!-- Delete Role Modal Content -->
+    <div id="delete-role-modal" class="modal fade" role="dialog" aria-labelledby="delete-role-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="delete-role-modal-label">Delete Role</h4>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <div id="delete-role-msg">
+                        <p>Are you sure you want to delete the role?</p>
+                    </div>
+                    <p><span style="color:red">Warning</span>: User(s) assigned to the deleted role will be converted to a Standard User.</p>
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-role-yes-button">Yes</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/adding_roles.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div id="alert" class="alert-placeholder-cspro alert-margin-cspro"></div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-2">
+                    <i class="fas fa-user fa-fw"></i> Roles
+                    <div class="btn-toolbar float-right">
+                        <button type="button" class="btn btn-primary btn-xs float-right" id="add-role-button">Add Role</button>
+                    </div>
+                </div>
+                <!-- /.panel-heading -->
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="table-responsive" class="table table-striped table-bordered table-hover" style="width:100%"></table>
+                    </div>
+                    <!-- /.table-responsive -->
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+{# content #}
+{% block scripts %}
+
+    <!-- Bootstrap Validator -->
+    <script src={{asset('dist/js/validator.min.js')}}></script>
+
+    <!-- Page-Level Scripts -->
+    <script>
+        "use strict";
+
+        $(document).ready(function ()
+        {
+            $("#roles-nav-item").removeClass('nav-item');
+            $("#roles-nav-item").addClass('nav-item active');
+            window.isAddRoleTextValid = false;
+
+            var roleTable = dataTables.initRolesTable();
+
+            // Add roles functionality
+            $("#add-role-button").click(function () {
+                $("#add-modal-spinner").show();
+                ui.showAddModal();
+            });
+
+            $("#add-role-modal").on("shown.bs.modal", function () {
+                $("#add-role-name").focus();
+            });
+
+            $("#add-role-modal").on("hidden.bs.modal", function () {
+                isAddRoleTextValid = false;
+                $("#add-role-form").unbind("submit");
+                $("#add-role-form").reset();
+                $("#add-role-form").validator("destroy");
+            });
+
+            var addRole = document.getElementById('add-role-yes-button');
+            addRole.addEventListener('click', function () {
+                chain.addRole();
+            });
+
+            // Edit roles functionality
+            // Use jQuery for delegated event handler that process events from elements added at a later time
+            $('#table-responsive tbody').on('click', '.edit-button-class', function (event) {
+                $("#edit-modal-spinner").show();
+                ui.showEditModal();
+            });
+
+            //$("#edit-role-modal").on("shown.bs.modal", function () {
+            //});
+
+            $("#edit-role-modal").on("hidden.bs.modal", function () {
+                $("#edit-role-form").unbind("submit");
+                $("#edit-role-form").validator("destroy");
+            });
+
+            var editRole = document.getElementById('edit-role-yes-button');
+            editRole.addEventListener('click', function () {
+                chain.editRole();
+            });
+
+            // Delete roles functionality
+            // Use jQuery for delegated event handler that process events from elements added at a later time
+            $('#table-responsive tbody').on('click', '.delete-button-class', function (event) {
+                ui.showDeleteModal(roleTable);
+            });
+
+            var deleteRole = document.getElementById('delete-role-yes-button');
+            deleteRole.addEventListener('click', function () {
+                chain.deleteRole(roleTable);
+            });
+        }); // $(document).ready
+
+        var chain =
+                {
+                    addRole: function () {
+                        // Chain Ajax calls (addRole)
+                        $("#add-role-modal").modal("hide");
+                        $("body").addClass("loading");
+                        db.addRole().then(function () {
+                            // Done addRole
+                            $("body").removeClass("loading");
+                        }, function () {
+                            // Failed addRole
+                            $("body").removeClass("loading");
+                        });
+                    },
+
+                    editRole: function () {
+                        // Chain Ajax calls (editRole)
+                        $("#edit-role-modal").modal("hide");
+                        $("body").addClass("loading");
+                        //$("body").addClass("loading");
+                        db.editRole().then(function () {
+                            // Done editRole
+                            $("body").removeClass("loading");
+                        }, function () {
+                            // Failed editRole
+                            $("body").removeClass("loading");
+                        });
+                    },
+
+                    deleteRole: function (roleTable) {
+                        // Chain Ajax calls (deleteRole)
+                        $("#delete-role-modal").modal("hide");
+                        $("body").addClass("loading");
+                        db.deleteRole(roleTable).then(function () {
+                            // Done deleteRole
+                            $("body").removeClass("loading");
+                        }, function () {
+                            // Failed deleteRole
+                            $("body").removeClass("loading");
+                        });
+                    }
+                }
+
+        var db =
+                {
+                    addRole: function () {
+                        // Add role permissions
+                        event.preventDefault();
+
+                        var roleName = document.getElementById("add-role-name").value;
+
+                        var dataPermission = document.getElementById("add-data-checkbox").checked;
+                        var reportsPermission = document.getElementById("add-reports-checkbox").checked;
+                        var appsPermission = document.getElementById("add-apps-checkbox").checked;
+                        var usersPermission = document.getElementById("add-users-checkbox").checked;
+                        var rolesPermission = document.getElementById("add-roles-checkbox").checked;
+                        var settingsPermission = document.getElementById("add-settings-checkbox").checked;
+
+                        var dictionaryPermissions = new Object();
+                        var tableData = $('#add-data-table').DataTable().rows().data();
+                        dictionaryPermissions = ui.getDictionaryPermissions(tableData, "-add");
+
+                        return $.ajax({
+                            type: "POST",
+                            url: "{{ url('add-role') }}",
+                            dataType: "json",
+                            data: {
+                                roleName: roleName,
+                                dataPermission: dataPermission,
+                                reportsPermission: reportsPermission,
+                                appsPermission: appsPermission,
+                                usersPermission: usersPermission,
+                                rolesPermission: rolesPermission,
+                                settingsPermission: settingsPermission,
+                                dictionaryPermissions: dictionaryPermissions
+                            }
+                        }).then(function (response) {
+                            // Done addRole
+                            if (response.type === "error") {
+                                // Only invalid responses will have a type
+                                ui.showAlert(response.message, "alert alert-danger");
+                                //if (response.status === 401) {
+                                //    window.location.href = "{{ path('logout') }}";
+                                //}
+                                //else {
+                                // Convert success to failure
+                                return $.Deferred().reject(response).promise();
+                                //}
+                            } else {
+                                $('#table-responsive').DataTable().draw();
+                                ui.showAlert(response, "alert alert-success");
+                            }
+                        }, function (response) {
+                            // Fail addRole
+                            if (response.status === 200) {
+                                // TODO: Hack to catch expired token
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                response = response.responseJSON;
+                                ui.showAlert(response.message, "alert alert-danger");
+                            }
+                        });
+                    },
+
+                    editRole: function () {
+                        // Edit role permissions
+                        event.preventDefault();
+
+                        var role = $('#table-responsive').DataTable().row(rowCurrent).data();
+
+                        var roleId = role["id"];
+                        var roleName = role["name"];
+
+                        var dataPermission = document.getElementById("edit-data-checkbox").checked;
+                        var reportsPermission = document.getElementById("edit-reports-checkbox").checked;
+                        var appsPermission = document.getElementById("edit-apps-checkbox").checked;
+                        var usersPermission = document.getElementById("edit-users-checkbox").checked;
+                        var rolesPermission = document.getElementById("edit-roles-checkbox").checked;
+                        var settingsPermission = document.getElementById("edit-settings-checkbox").checked;
+
+                        var dictionaryPermissions = new Object();
+                        var tableData = $('#edit-data-table').DataTable().rows().data();
+                        dictionaryPermissions = ui.getDictionaryPermissions(tableData, "-edit");
+
+                        return $.ajax({
+                            type: "POST",
+                            url: "{{ url('edit-role') }}",
+                            dataType: "json",
+                            data: {
+                                roleId: roleId,
+                                roleName: roleName,
+                                dataPermission: dataPermission,
+                                reportsPermission: reportsPermission,
+                                appsPermission: appsPermission,
+                                usersPermission: usersPermission,
+                                rolesPermission: rolesPermission,
+                                settingsPermission: settingsPermission,
+                                dictionaryPermissions: dictionaryPermissions
+                            }
+                        }).then(function (response) {
+                            // Done editRole
+                            if (response.type === "error") {
+                                // Only invalid responses will have a type
+                                ui.showAlert(response.message, "alert alert-danger");
+                                //if (response.status === 401) {
+                                //    window.location.href = "{{ path('logout') }}";
+                                //}
+                                //else {
+                                // Convert success to failure
+                                return $.Deferred().reject(response).promise();
+                                //}
+                            } else {
+                                $('#table-responsive').DataTable().row(rowCurrent).draw();
+                                ui.showAlert(response, "alert alert-success");
+                            }
+                        }, function (response) {
+                            // Fail editRole
+                            if (response.status === 200) {
+                                // TODO: Hack to catch expired token
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                response = response.responseJSON;
+                                ui.showAlert(response.message, "alert alert-danger");
+                            }
+                        });
+                    },
+
+                    deleteRole: function (roleTable) {
+                        // Delete role from cspro_roles and permissions from cspro_role_permissions
+                        var roleId = (roleTable.row(rowCurrent).data())["id"];
+                        var roleName = (roleTable.row(rowCurrent).data())["name"];
+
+                        return $.ajax({
+                            type: "DELETE",
+                            url: "{{ url('delete-role') }}",
+                            dataType: "json",
+                            data: {
+                                roleId: roleId,
+                                roleName: roleName
+                            }
+                        }).then(function (response) {
+                            // Done deleteRole
+                            if (response.type === "error") {
+                                // Only invalid responses will have a type
+                                ui.showAlert(response.message, "alert alert-danger");
+                                //if (response.status === 401) {
+                                //    window.location.href = "{{ path('logout') }}";
+                                //}
+                                //else {
+                                // Convert success to failure
+                                return $.Deferred().reject(response).promise();
+                                //}
+                            } else {
+                                roleTable.row(rowCurrent).remove().draw();
+                                ui.showAlert(response, "alert alert-success");
+                            }
+                        }, function (response) {
+                            // Fail deleteRole
+                            if (response.status === 405) {
+                                // TODO: Hack to catch expired token
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                ui.showAlert(response.message, "alert alert-danger");
+                            }
+                        });
+                    }
+                }
+
+        var ui =
+                {
+                    showAddModal: function ()
+                    {
+                        dataTables.initAddDictTable();
+                        $("#add-role-modal").modal("show");
+                    },
+
+                    showEditModal: function ()
+                    {
+                        window.rowCurrent = ($(event.target).closest("tr"))[0];
+
+                        var role = $('#table-responsive').DataTable().row(rowCurrent).data();
+
+                        var roleName = document.getElementById("edit-role-name");
+                        roleName.value = role["name"];
+
+                        var dataPermission = role["rolePermissions"]["permissions"]["1"] === true ? true : false;
+                        var reportsPermission = role["rolePermissions"]["permissions"]["5"] === true ? true : false;
+                        var appsPermission = role["rolePermissions"]["permissions"]["2"] === true ? true : false;
+                        var usersPermission = role["rolePermissions"]["permissions"]["3"] === true ? true : false;
+                        var rolesPermission = role["rolePermissions"]["permissions"]["4"] === true ? true : false;
+                        var settingsPermission = role["rolePermissions"]["permissions"]["8"] === true ? true : false;
+
+                        var dataCheckbox = document.getElementById("edit-data-checkbox");
+                        dataCheckbox.checked = dataPermission;
+                        var reportsCheckbox = document.getElementById("edit-reports-checkbox");
+                        reportsCheckbox.checked = reportsPermission;
+                        var appsCheckbox = document.getElementById("edit-apps-checkbox");
+                        appsCheckbox.checked = appsPermission;
+                        var usersCheckbox = document.getElementById("edit-users-checkbox");
+                        usersCheckbox.checked = usersPermission;
+                        var rolesCheckbox = document.getElementById("edit-roles-checkbox");
+                        rolesCheckbox.checked = rolesPermission;
+                        var settingsCheckbox = document.getElementById("edit-settings-checkbox");
+                        settingsCheckbox.checked = settingsPermission;
+
+                        var rowNumber = $(event.target).closest('tr').index();
+
+                        dataTables.initEditDictTable(rowNumber);
+                        $("#edit-role-modal").modal("show");
+                    },
+
+                    showDeleteModal: function (roleTable)
+                    {
+                        window.rowCurrent = ($(event.target).closest("tr"))[0];
+                        var roleName = (roleTable.row(rowCurrent).data())["name"];
+                        var modalText = 'Are you sure you want to delete the role \"' + roleName + '\"?';
+                        $("#delete-role-modal").find('#delete-role-msg').text(modalText);
+                        $("#delete-role-modal").modal("show");
+                    },
+
+                    getDictionaryPermissions: function (tableData, makeUniqueId)
+                    {
+                        var dictionaryPermissions = new Object();
+
+                        tableData.each(function (value, index) {
+                            var syncUploadCheckboxId = value.dictionaryname + makeUniqueId + "-upload-checkbox";
+                            var syncDownloadCheckboxId = value.dictionaryname + makeUniqueId + "-download-checkbox";
+
+                            var syncUpload = document.getElementById(syncUploadCheckboxId).checked;
+
+                            var syncDownload = document.getElementById(syncDownloadCheckboxId).checked;
+
+                            var dictionaryPermission = new Object();
+                            dictionaryPermission["dictionaryname"] = value.dictionaryname;
+                            dictionaryPermission["dictionarylabel"] = value.dictionarylabel;
+                            dictionaryPermission["dictionaryId"] = value.dictionaryId;
+                            dictionaryPermission["syncUpload"] = syncUpload;
+                            dictionaryPermission["syncDownload"] = syncDownload;
+
+                            dictionaryPermissions[value.dictionaryname] = dictionaryPermission;
+                        });
+
+                        return dictionaryPermissions;
+                    },
+
+                    initBootstrapValidator: function (form) {
+                        $(form).validator().on("submit", function (event) {
+                            // If the form is invalidated by Bootstrap Validator then the submit event calls
+                            // preventDefault(). Use isDefaultPrevented() to detect whether form is valid.
+                            if (!event.isDefaultPrevented()) {
+                                submit(event);
+                            }
+                        });
+                    },
+
+                    checkboxValidator: function (group, form, goal) {
+                        // Default at least 1 checkbox must be checked
+                        var goal = goal || 1;
+
+                        if (group.filter(':checked').length >= goal)
+                            return true;
+                        else
+                            return false;
+                    },
+
+                    validateAddRoleForm: function () {
+                        var form = $("add-role-form");
+                        var group = $("input.add-checkbox-group");
+                        var isChecked = ui.checkboxValidator(group, form, 1);
+
+                        if (isAddRoleTextValid && isChecked)
+                            document.getElementById('add-role-yes-button').disabled = false;
+                        else
+                            document.getElementById('add-role-yes-button').disabled = true;
+                    },
+
+                    validateEditRoleForm: function () {
+                        var form = $("edit-role-form");
+                        var group = $("input.edit-checkbox-group");
+                        var isChecked = ui.checkboxValidator(group, form, 1);
+
+                        if (isChecked)
+                            document.getElementById('edit-role-yes-button').disabled = false;
+                        else
+                            document.getElementById('edit-role-yes-button').disabled = true;
+                    },
+
+                    showAlert: function (message, alertStyle) {
+                        $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+                        $("#alert").show();
+                    },
+
+                    clearAlert: function () {
+                        $("#alert").replaceWith("<div id='alert' class='alert-placeholder-cspro alert-margin-cspro'></div>");
+                        $("#alert").show();
+                    },
+
+                    showImportAlert: function (message, alertStyle) {
+                        $("#import-modal-alert").replaceWith("<div id='import-modal-alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+                        $("#import-modal-alert").show();
+                    }
+                }
+
+        var dataTables =
+                {
+                    initRolesTable: function () {
+                        //$('[data-toggle="popover"]').popover();
+                        $.fn.dataTable.ext.errMode = 'none';
+
+                        return $('#table-responsive')
+                                .on('xhr.dt', function (e, settings, json, xhr) {
+                                    if (xhr.status === 401 || xhr.status === 405) {
+                                        window.location.href = "{{ path('logout') }}";
+                                    } else if (json && json.type === "error") {
+                                        // Only invalid responses will have a type
+                                        ui.showAlert(json.message, "alert alert-danger");
+                                    }
+                                })
+                                .on('error.dt', function (e, settings, techNote, message) {
+                                    var strLogin = '<title>CSWeb: Login</title>';
+                                    if (settings && settings.jqXHR && settings.jqXHR.responseText && settings.jqXHR.responseText.includes(strLogin)) {
+                                        window.location.href = "{{ path('logout') }}";
+                                        return;
+                                    }
+                                    console.log('An error has been reported by DataTables: ', message);
+                                })
+                                .DataTable({
+                                    serverSide: true,
+                                    processing: true,
+                                    searching: false,
+                                    paging: false,
+                                    ordering: false,
+                                    info: false,
+                                    columns: [
+                                        {title: "Role Name", data: "name"},
+                                        {title: "Data", data: function (data, type, row) {
+                                                if (data.name === "Administrator")
+                                                    data = "Yes";
+                                                else if (data.rolePermissions.permissions[1] === true)
+                                                    data = "Yes";
+                                                else
+                                                    data = "No"
+
+                                                return data;
+                                            }},
+                                        {title: "Reports", data: function (data, type, row) {
+                                                if (data.name === "Administrator")
+                                                    data = "Yes";
+                                                else if (data.rolePermissions.permissions[5] === true)
+                                                    data = "Yes";
+                                                else
+                                                    data = "No"
+
+                                                return data;
+                                            }},
+                                        {title: "Apps", data: function (data, type, row) {
+                                                if (data.name === "Administrator")
+                                                    data = "Yes";
+                                                else if (data.rolePermissions.permissions[2] === true)
+                                                    data = "Yes";
+                                                else
+                                                    data = "No"
+
+                                                return data;
+                                            }},
+                                        {title: "Users", data: function (data, type, row) {
+                                                if (data.name === "Administrator")
+                                                    data = "Yes";
+                                                else if (data.rolePermissions.permissions[3] === true)
+                                                    data = "Yes";
+                                                else
+                                                    data = "No"
+
+                                                return data;
+                                            }},
+                                        {title: "Roles", data: function (data, type, row) {
+                                                if (data.name === "Administrator")
+                                                    data = "Yes";
+                                                else if (data.rolePermissions[4] === true)
+                                                    data = "Yes";
+                                                else
+                                                    data = "No"
+
+                                                return data;
+                                            }},
+                                        {title: "Edit", render: function (data, type, row) {
+                                                var ret;
+                                                if (row.name === "Standard User" || row.name === "Administrator")
+                                                    ret = '<a href="javascript:;" class="isDisabled" style="color:grey; cursor:default;"><i class="fas fa-pencil-alt fa-fw"></i></a>';
+                                                else
+                                                    ret = '<a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a>';
+
+                                                return ret;
+                                            }},
+                                        {title: "Delete", render: function (data, type, row) {
+                                                var ret;
+                                                if (row.name === "Standard User" || row.name === "Administrator")
+                                                    ret = '<a href="javascript:;" class="isDisabled" style="color:grey; cursor:default;"><i class="fas fa-trash fa-fw"></i></a>';
+                                                else
+                                                    ret = '<a href="javascript:;" class="delete-button-class"><i class="fas fa-trash fa-fw"></i></a>';
+
+                                                return ret;
+                                            }},
+                                        {data: "id", "visible": false}
+                                    ],
+                                    ajax: {
+                                        url: "{{ url('get-roles') }}",
+                                        dataSrc: ""
+                                    },
+                                },
+                                        );
+                    },
+
+                    initAddDictTable: function () {
+                        //$('[data-toggle="popover"]').popover();
+                        $.fn.dataTable.ext.errMode = 'none';
+
+                        if ($.fn.dataTable.isDataTable('#add-data-table')) {
+                            // Delete DataTable before reinitializing DataTable
+                            $('#add-data-table').DataTable().destroy();  // Destroy table
+                        }
+
+                        return $('#add-data-table')
+                                .on('xhr.dt', function (e, settings, json, xhr) {
+                                    if (xhr.status === 401 || xhr.status === 405) {
+                                        window.location.href = "{{ path('logout') }}";
+                                    } else if (json && json.type === "error") {
+                                        // Only invalid responses will have a type
+                                        ui.showAlert(json.message, "alert alert-danger");
+                                    }
+                                })
+                                .on('error.dt', function (e, settings, techNote, message) {
+                                    var strLogin = '<title>CSWeb: Login</title>';
+                                    if (settings && settings.jqXHR && settings.jqXHR.responseText && settings.jqXHR.responseText.includes(strLogin)) {
+                                        window.location.href = "{{ path('logout') }}";
+                                        return;
+                                    }
+                                    console.log('An error has been reported by DataTables: ', message);
+                                })
+                                .DataTable({
+                                    serverSide: true,
+                                    processing: true,
+                                    searching: false,
+                                    paging: false,
+                                    ordering: false,
+                                    info: false,
+                                    columns: [
+                                        {title: "Dictionary Label", data: 'dictionarylabel'},
+                                        {title: "Dictionary Name", data: 'dictionaryname'},
+                                        {title: "Upload", render: function (data, type, row) {
+                                                var ret;
+
+                                                var checkboxId = row.dictionaryname + "-add-upload-checkbox";
+                                                if (row.syncUpload === true)
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="add-checkbox-group" checked>';
+                                                else
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="add-checkbox-group">';
+
+                                                return ret;
+                                            }},
+                                        {title: "Download", render: function (data, type, row) {
+                                                var ret;
+
+                                                var checkboxId = row.dictionaryname + "-add-download-checkbox";
+                                                if (row.syncDownload === true)
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="add-checkbox-group" checked>';
+                                                else
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="add-checkbox-group">';
+
+                                                return ret;
+                                            }},
+                                        {title: "Dictonary Id", data: "dictionaryId", "visible": false}
+                                    ],
+                                    ajax: {
+                                        url: "{{ url('get-dictionary-permissions') }}",
+                                        dataSrc: ""
+                                    },
+
+                                    initComplete: function () {
+                                        ui.initBootstrapValidator("#add-role-form");
+
+                                        // Register text box to validate on valid event
+                                        $('#add-role-form').on('valid.bs.validator', function (e) {
+                                            if (e.relatedTarget.id === "add-role-name") {
+                                                isAddRoleTextValid = true;
+                                                ui.validateAddRoleForm();
+                                            }
+                                        });
+
+                                        // Register text box to validate on invalid event
+                                        $('#add-role-form').on('invalid.bs.validator', function (e) {
+                                            if (e.relatedTarget.id === "add-role-name") {
+                                                isAddRoleTextValid = false;
+                                                ui.validateAddRoleForm();
+                                            }
+                                        });
+
+                                        // Register each checkbox in add modal to validate on click
+                                        var cbs = document.querySelectorAll(".add-checkbox-group");
+                                        [].forEach.call(cbs, function (cb) {
+                                            cb.addEventListener("click", function () {
+                                                ui.validateAddRoleForm();
+                                            });
+                                        });
+
+                                        $("#add-modal-spinner").hide();
+                                    },
+                                },
+                                        );
+                    },
+
+                    initEditDictTable: function (rowNumber) {
+                        //$('[data-toggle="popover"]').popover();
+                        $.fn.dataTable.ext.errMode = 'none';
+
+                        if ($.fn.dataTable.isDataTable('#edit-data-table')) {
+                            // Delete DataTable before reinitializing DataTable
+                            $('#edit-data-table').DataTable().destroy();  // Destroy table
+                        }
+
+                        return $('#edit-data-table')
+                                .on('xhr.dt', function (e, settings, json, xhr) {
+                                    if (xhr.status === 401 || xhr.status === 405) {
+                                        window.location.href = "{{ path('logout') }}";
+                                    } else if (json && json.type === "error") {
+                                        // Only invalid responses will have a type
+                                        ui.showAlert(json.message, "alert alert-danger");
+                                    }
+                                })
+                                .on('error.dt', function (e, settings, techNote, message) {
+                                    var strLogin = '<title>CSWeb: Login</title>';
+                                    if (settings && settings.jqXHR && settings.jqXHR.responseText && settings.jqXHR.responseText.includes(strLogin)) {
+                                        window.location.href = "{{ path('logout') }}";
+                                        return;
+                                    }
+                                    console.log('An error has been reported by DataTables: ', message);
+                                })
+                                .DataTable({
+                                    serverSide: true,
+                                    processing: true,
+                                    searching: false,
+                                    paging: false,
+                                    ordering: false,
+                                    info: false,
+                                    columns: [
+                                        {title: "Dictionary Label", data: 'dictionarylabel'},
+                                        {title: "Dictionary Name", data: 'dictionaryname'},
+                                        {title: "Upload", render: function (data, type, row) {
+                                                var ret;
+
+                                                var checkboxId = row.dictionaryname + "-edit-upload-checkbox";
+                                                //console.log("Current status of upload for " + row.dictionaryname + " is " + row.syncUpload);
+                                                if (row.syncUpload === true)
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="edit-checkbox-group" checked>';
+                                                else
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="edit-checkbox-group">';
+
+                                                return ret;
+                                            }},
+                                        {title: "Download", render: function (data, type, row) {
+                                                var ret;
+
+                                                var checkboxId = row.dictionaryname + "-edit-download-checkbox";
+                                                //console.log("Current status of download for " + row.dictionaryname + " is " + row.syncDownload);
+                                                if (row.syncDownload === true)
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="edit-checkbox-group" checked>';
+                                                else
+                                                    ret = '<input type="checkbox" id="' + checkboxId + '" class="edit-checkbox-group">';
+
+                                                return ret;
+                                            }},
+                                        {title: "Dictonary Id", data: "dictionaryId", "visible": false}
+                                    ],
+                                    ajax: {
+                                        url: "{{ url('get-dictionary-permissions') }}",
+                                        data: {
+                                            rowNumber: rowNumber,
+                                        },
+                                        dataSrc: ""
+                                    },
+
+                                    initComplete: function () {
+                                        ui.initBootstrapValidator("#edit-role-form");
+
+                                        // Register each checkbox in edit modal to validate on click
+                                        var cbs = document.querySelectorAll(".edit-checkbox-group");
+                                        [].forEach.call(cbs, function (cb) {
+                                            cb.addEventListener("click", function () {
+                                                ui.validateEditRoleForm();
+                                            });
+                                        });
+
+                                        // Validate current state
+                                        ui.validateEditRoleForm();
+
+                                        $("#edit-modal-spinner").hide();
+                                    },
+                                },
+                                        );
+                    }
+                }
+
+    </script>
+{% endblock %}
+{# scripts #}

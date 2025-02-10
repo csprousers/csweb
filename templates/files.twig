@@ -1,0 +1,611 @@
+{% extends "base.twig" %}
+
+{% block resources %}
+
+{% endblock %}
+
+{% block modal %}
+    <!-- File upload modal -->
+    <div id="file-upload-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Upload files</h4>
+                    <button type="button" class="close  " data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form id="uploadFileForm" class="form-horizontal" method="post" enctype="multipart/form-data" role="form">
+                        <div class="form-group">
+                            <div class="col-12">
+                                <input class="form-control-file files-upload" type="file" multiple name="uploads[]" onchange="javascript:updateList();">
+                            </div>
+                        </div>
+                        <div class="form-group" id="fileList">
+                        </div>
+                        <div class="modal-footer">
+                            <button id="uploadFilesButton" type="submit" class="btn btn-primary btn-sm"><i class="fas fa-upload"></i> Upload</button>
+                            <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+
+                </div>
+                <!-- /.modal-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.file-upload-modal -->
+
+    <div id="promptModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="propmtModalCaption"></h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form id="promptForm" class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <div class="col-12">
+                                <input id="promptTextBox" class="form-control" type="text">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="promptOkButton" type="button" class="btn btn-primary btn-sm">OK</button>
+                            <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+
+                </div>
+                <!-- /.modal-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.prompt-modal -->
+
+    <div id="confirmModal" class="modal fade" role="dialog" data-keyboard="true" data-toggle="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="confirmModalCaption"></h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>     
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form id="confirmForm" class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <div class="col-12">
+                                <div id="confirmModalText"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="confirmYesButton" type="button" class="btn btn-danger btn-sm">Yes</button>
+                            <button id="confirmNoButton" type="button" class="btn btn-primary btn-sm" data-dismiss="modal">No</button>
+                            <button id="confirmOkButton" type="button" class="btn btn-primary btn-sm">OK</button>
+                        </div>
+                    </form>
+
+                </div>
+                <!-- /.modal-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.confirm-modal -->
+
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/upload_files.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div id="alert" class="alert-placeholder-cspro alert-margin-cspro">
+            </div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <!--
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom: 15px; display: flex; align-items: center">
+          <button type="button" class="btn btn-primary btn-sm create-folder"  rel="tooltip"  title="Folder will be created in the current directory"><i class="fas fa-plus"></i> Create Folder</button>
+          <button type="button" class="btn btn-primary btn-sm upload-files"  rel="tooltip"  title="Uploaded files will be placed in this directory" style="margin-left: 8px;"><i class="fas fa-upload"></i> Upload Files</button>
+          <button type="button" class="btn btn-primary btn-sm delete-files"  rel="tooltip"  title="Delete selected files" style="margin-left: 8px;" disabled><i class="fas fa-trash"></i> Delete Files</button>
+          
+          <form method="post" enctype="multipart/form-data" style="display: inline-block; margin-left: auto;">
+              <input type="file" multiple name="uploads[]" style="display: inline-block">
+              <button type="submit" class="btn btn-primary btn-sm" rel="tooltip" title="Uploaded files will be placed in this directory"><i class="fas fas-upload"></i> Upload</button>
+          </form>   
+        </div>
+    </div>
+    -->
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- ALW - Create margin above panel heading -->
+                <div class="card-header py-2" style="display: table; width: 100%;">
+                    <i class="fas fa-file"></i>
+                    <nav aria-label="breadcrumb" style="display: inline-block;">
+                        <ol class="breadcrumb" style="margin-bottom: 0; padding-top: 0; padding-bottom: 0; padding-left: 4px;">
+                            <li class="breadcrumb-item"><a href="{{ path('files') }}">files</a></li>
+                        </ol>
+                    </nav>
+
+                    <button type="button" class="btn btn-danger btn-xs float-right delete-files"  rel="tooltip"  title="Delete selected files" style="margin-left: 8px;" disabled><i class="fas fa-trash"></i> Delete Files</button>
+                    <button type="button" class="btn btn-primary btn-xs float-right upload-files"  rel="tooltip"  title="Uploaded files will be placed in this directory" style="margin-left: 8px;"><i class="fas fa-upload"></i> Upload Files</button>
+                    <button type="button" class="btn btn-primary btn-xs float-right create-folder"  rel="tooltip"  title="Folder will be created in the current directory"><i class="fas fa-plus"></i> Create Folder</button>
+                </div>
+                <!-- /.panel-heading -->
+                <div class="card-body">
+                <div class="table-responsive">
+                    <table id="files-data-table" class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAllFilesCheckbox" class="form-control-sm" rel="tooltip"  title="Select all"></th>
+                                <th class="col-8">Name</th>
+                                <th class="col-4">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td><a href="{{ parent_dir }}"><i class="fas fa-arrow-up"></i> ..</a></td>
+                                <td></td>
+                            </tr>
+                            {% for file in files %}
+                                <tr>
+                                    <td><input type="checkbox" class="form-control-sm file-select" value="{{ file.link }}" /></td>
+                                        {% if file.is_dir %}
+                                        <td>
+                                            <a href="{{ file.link }}" style="white-space:pre;"><i class="fas fa-folder"></i> {{ file.name }}</a>
+                                            <div class="float-right">
+                                                <a href="{{ file.link }}" class="edit_filename" rel="tooltip" title="rename folder" style="margin-left: 10px"><i class="fas fa-pencil-alt"></i></a>
+                                                <a href="{{ file.link }}" rel="tooltip" class="delete_file text-danger" title="delete folder" style="margin-left: 10px"><i class="fas fa-trash"></i></a>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                    {% else %}
+                                        <td ><span style="white-space:pre;">{{ file.name }}</span>
+                                            <div class="float-right">
+                                                <a href="{{ file.link }}" title="download file" rel="tooltip" style="margin-left: 30px" ><i class="fas fa-download"></i></a>
+                                                <a href="{{ file.link }}" class="edit_filename" rel="tooltip" title="rename file" style="margin-left: 10px"><i class="fas fa-pencil-alt"></i></a>
+                                                <a href="{{ file.link }}" rel="tooltip" class="delete_file text-danger" title="delete file" style="margin-left: 10px"><i class="fas fa-trash"></i></a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{ file.timestamp }}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+                </div>
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+{# content #}  
+
+{% block scripts %}
+    <script>
+        (function () {
+            $('.breadcrumb').find("a").first().attr("href", "{{ path('files') }}");
+
+            var patharray = '{{filePath}}'.split('/');
+            var hrefs = [];
+            $(patharray.map(function (a, i) {
+                hrefs.push(a);
+                var thisref = "{{ path('files') }}/" + hrefs.join('/');
+                if (hrefs.length === patharray.length)
+                    return $('<li class="breadcrumb-item active"><b>' + a + '</b></li>')[0];
+                else
+                    return $('<li class="breadcrumb-item"><a href="' + thisref + '">' + a + '</a></li>')[0];
+            })).appendTo('.breadcrumb');
+        })();
+
+        function enableDisablePromptOkButton() {
+            if ($("#promptTextBox").val().trim().length == 0) {
+                $('#promptOkButton').prop('disabled', true);
+            } else {
+                $('#promptOkButton').prop('disabled', false);
+            }
+        }
+
+        function prompt2(caption, initialValue, callback) {
+            $('#promptOkButton').click(function () {
+                if ($("#promptTextBox").val().trim().length == 0)
+                    return;
+
+                $("#promptModal").modal("hide");
+                callback($("#promptTextBox").val().trim());
+            });
+            $("#propmtModalCaption").html(caption);
+            $("#promptForm").get(0).reset();
+            $('#promptForm input').keydown(function (e) {
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    $('#promptOkButton').click();
+                    return false;
+                }
+            });
+
+            $("#promptModal").modal("show");
+            $("#promptTextBox").val(decodeURIComponent(initialValue));
+            $("#promptTextBox")[0].oldValue = $("#promptTextBox").val()
+            $("#promptTextBox").on("input", function () {
+                enableDisablePromptOkButton();
+            });
+            enableDisablePromptOkButton();
+            setTimeout(function () {
+                $("#promptTextBox").focus();
+                var carat = $("#promptTextBox").val().length;
+                if (carat > 0) {
+                    $("#promptTextBox")[0].setSelectionRange(0, carat);
+                }
+            }, 300);
+        }
+
+        function confirm2(caption, text, callback) {
+            $('#confirmYesButton').click(function () {
+                $("#confirmModal").modal("hide");
+                callback();
+            });
+
+            $('#confirmModal').keydown(function (e) {
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    $('#confirmYesButton').click();
+                    return false;
+                }
+            });
+
+            $('#confirmOkButton').hide();
+            $('#confirmYesButton').show();
+            $('#confirmNoButton').show();
+            $("#confirmModalCaption").html(caption);
+            $("#confirmModalText").html(text);
+            $("#confirmModal").modal("show");
+        }
+
+        function alert2(caption, text, callback) {
+            $('#confirmOkButton').click(function () {
+                $("#confirmModal").modal("hide");
+                callback();
+            });
+
+            $('#confirmModal').keydown(function (e) {
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    $('#confirmYesButton').click();
+                    return false;
+                }
+            });
+
+            $('#confirmOkButton').show();
+            $('#confirmYesButton').hide();
+            $('#confirmNoButton').hide();
+            $("#confirmModalCaption").html(caption);
+            $("#confirmModalText").html(text);
+            $("#confirmModal").modal("show");
+        }
+
+        $(document).on('click', '.create-folder', function () {
+            prompt2('Enter folder name...', '', function (foldername) {
+                //var foldername = prompt('Enter folder name...');
+                if (!foldername)
+                    return;
+
+                $("body").addClass("loading");
+                var request = $.ajax({
+                    url: "",
+                    type: "PUT",
+                    data: {foldername: foldername}
+                });
+
+                request.done(function (data) {
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    //if(data == 1) window.location.reload();
+                    if (data)
+                        window.location.assign(data);
+                });
+
+                request.fail(function (data, jqXHR, textStatus) {
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    alert("Request failed: " + textStatus);
+                });
+            });
+        });
+
+        $(document).on('click', '.rename_folder', function () {
+            var foldername = prompt('Enter new folder name...', '{{foldername}}');
+
+            if (!foldername)
+                return;
+
+            var request = $.ajax({
+                url: "",
+                type: "PUT",
+                data: {foldername: foldername, rename: true}
+            });
+
+            request.done(function (data) {
+                if (data)
+                    window.location.assign(data);
+            });
+
+            request.fail(function (data, jqXHR, textStatus) {
+                console.log(data);
+                alert("Request failed: " + textStatus);
+            });
+        });
+
+        $(document).on('click', '.delete_folder', function () {
+            var confirmed = prompt('To confirm, and delete the folder, type the full path below');
+            var path = '{{filePath}}';
+            if (path.slice(-1) === '/')
+                path = path.slice(0, -1);
+            if (confirmed !== path)
+                return false;
+
+            var request = $.ajax({
+                url: "",
+                type: "DELETE",
+            });
+
+            request.done(function (data) {
+                console.log(data);
+                if (data)
+                    window.location.assign(data);
+            });
+
+            request.fail(function (data, jqXHR, textStatus) {
+                console.log(data);
+                alert("Request failed: " + textStatus);
+            });
+        });
+
+        function changeFileManagerToFilesInPath(path) {
+            return path.replace(/^(.*?)file-manager/, "files")
+        }
+
+        $(document).on('click', '.delete_file', function (e) {
+            e.preventDefault();
+            var refUrl = this.href;
+
+            var isFile = $(this)
+                    .parent()
+                    .find($('.fa-download'))
+                    .hasClass('fa-download');
+
+            var message = `Are you sure you want to delete the ${isFile ? 'file' : 'folder'} "${changeFileManagerToFilesInPath(decodeURIComponent(this.pathname))}"`;
+            if (!isFile)
+                message += ' and all its content';
+            message += '?';
+            confirm2(`Delete ${isFile ? 'File' : 'Folder'}`, message, function () {
+                //if(!confirm('Are you sure? you want to delete the file: ' + this.pathname)) return false;
+                $("body").addClass("loading");
+                var request = $.ajax({
+                    url: refUrl,
+                    type: "DELETE",
+                });
+
+                request.done(function (data) {
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    if (data)
+                        window.location.assign(data);
+                });
+
+                request.fail(function (data, jqXHR, textStatus) {
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    alert("Request failed: " + textStatus);
+                });
+            });
+        });
+
+        $(document).on('click', '.edit_filename', function (e) {
+            e.preventDefault();
+            var filename = this.pathname.split('/').slice(-1);
+            var refUrl = this.href;
+            prompt2('Enter new name', filename, function (newname) {
+                //var newname = prompt('Enter new filename', filename);
+                $("body").addClass("loading");
+                var request = $.ajax({
+                    url: refUrl,
+                    type: "GET",
+                    data: {new_filename: newname},
+                });
+
+                request.done(function (data) {
+                    $("body").removeClass("loading");
+                    if (data)
+                        window.location.reload();
+                });
+
+                request.fail(function (data, jqXHR, textStatus) {
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    alert2("Renaming failed", "File or folder with this name already exists", function () {
+                        window.location.reload();
+                    });
+                    //alert( "Request failed: " + textStatus );
+                });
+            });
+
+        });
+
+        $('.upload-files').click(function () {
+            $("#uploadFileForm").get(0).reset();
+            $('#fileList').empty();
+            $('#uploadFilesButton').attr("disabled", true);
+            $("#file-upload-modal").modal("show");
+        });
+
+        $('[rel="tooltip"]').tooltip({
+            delay: {show: 250, hide: 0},
+        });
+
+        $('[data-delay]').tooltip();
+
+        var updateList = function () {
+            var input = $('.files-upload')[0];
+            var fList = $('<ul class=""></ul>')
+                    .appendTo($('#fileList').empty());
+
+            for (var i = 0; i < input.files.length; ++i) {
+                fList.append(`<li>${input.files.item(i).name}</li>`);
+            }
+
+            $('#uploadFilesButton').attr("disabled",
+                    input.files.length === 0);
+        }
+
+        $('.file-select').change(function () {
+            //updating delete button visibility
+            updateDeleteButtonVisibility();
+            //updating select all checkbox
+            setSelectAllCheckbox();
+        });
+
+        function updateDeleteButtonVisibility() {
+            if ($('.file-select:checked').length > 0)
+                $('.delete-files').prop('disabled', false);
+            else
+                $('.delete-files').prop('disabled', true);
+        }
+
+        function setCheckBoxes(checked, updateSelectAllCheckbox) {
+            $('.file-select').each(function () {
+                $(this).prop('checked', checked);
+            });
+            updateDeleteButtonVisibility();
+
+            if (updateSelectAllCheckbox)
+                setSelectAllCheckbox();
+        }
+
+        $('.delete-files').click(function () {
+            confirm2('Delete Files', 'Are you sure you want to delete selected files/folders?', function () {
+                var params = new URLSearchParams();
+                var i = 0;
+                //getting data for files/folders to be deleted
+                $('.file-select:checked').each(function () {
+                    params.append(`files[${i++}]`, $(this).val());
+                });
+
+                $("body").addClass("loading");
+                var request = $.ajax({
+                    url: "{{ url('file-manager-delete-selected') }}",
+                    type: "DELETE",
+                    data: params.toString()
+                });
+
+                request.done(function (data) {
+                    setCheckBoxes(false, true);
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    window.location.reload();
+                });
+
+                request.fail(function (data, jqXHR, textStatus) {
+                    setCheckBoxes(false, true);
+                    $("body").removeClass("loading");
+                    console.log(data);
+                    alert2("Delete failed", "Error deleting file or folder", function () {
+                        window.location.reload();
+                    });
+                });
+            });
+        });
+
+        function setSelectAllCheckbox() {
+            var rowCount = $('.file-select').length;
+            var selCount = $('.file-select:checked').length;
+            var cb = $('#selectAllFilesCheckbox')[0];
+            if (selCount === rowCount) {
+                cb.checked = true;
+                cb.indeterminate = false;
+            } else if (selCount === 0) {
+                cb.checked = false;
+                cb.indeterminate = false;
+            } else {
+                cb.checked = false;
+                cb.indeterminate = true;
+            }
+        }
+
+        $('#selectAllFilesCheckbox').click(function () {
+            setCheckBoxes($(this).is(':checked'), false);
+        });
+
+        $('#selectAllFilesCheckbox').prop('disabled',
+                $('.file-select').length === 0
+                );
+
+        $('#uploadFilesButton').click(function () {
+            $('#file-upload-modal').on('hidden.bs.modal', function () {
+                $("body").addClass("loading");
+            });
+            $('#file-upload-modal').modal('hide');
+        });
+
+        // Restricts input for the given textbox to the given inputFilter.
+        function setInputFilter(textbox, inputFilter) {
+            ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function (event) {
+                textbox.addEventListener(event, function () {
+                    if (this.value == "") {
+                        if (this.hasOwnProperty("oldValue")) {
+                            this.oldValue = this.value;
+                        }
+                    } else if (inputFilter(this.value)) {
+                        this.oldValue = this.value;
+                        this.oldSelectionStart = this.selectionStart;
+                        this.oldSelectionEnd = this.selectionEnd;
+                    } else if (this.hasOwnProperty("oldValue")) {
+                        this.value = this.oldValue;
+                        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+                    } else {
+                        this.value = "";
+                    }
+                });
+            });
+        }
+
+        $(document).ready(function () {
+            $("#files-nav-item").removeClass('nav-item');
+            $("#files-nav-item").addClass('nav-item active');
+            $('#files-data-table').DataTable({
+                "order": [[1, "asc"]],
+                columnDefs: [{
+                    orderable: false,
+                    targets: 0
+                    }]
+            });
+            setInputFilter($("#promptTextBox")[0], function (value) {
+                return /^[^\\/?%*:|"<>]+$/.test(value);
+            });
+        });
+    </script>
+{% endblock %}

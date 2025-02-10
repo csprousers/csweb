@@ -1,0 +1,25 @@
+imports:
+    - { resource: config.yml }
+
+#doctrine:
+#    orm:
+#        metadata_cache_driver: apc
+#        result_cache_driver: apc
+#        query_cache_driver: apc
+
+monolog:
+    handlers:
+        main:
+            type: fingers_crossed
+            action_level: error
+            handler: nested
+        nested:
+            type: rotating_file
+            path: '%kernel.logs_dir%/api.log'
+            level: '%csweb_log_level%'
+        console:
+            type: console
+            process_psr_3_messages: false
+        db:
+            type: service
+            id: cspro_monolog_handler

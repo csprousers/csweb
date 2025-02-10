@@ -1,0 +1,34 @@
+imports:
+    - { resource: config.yml }
+
+#doctrine:
+#    orm:
+#        metadata_cache_driver: apc
+#        result_cache_driver: apc
+#        query_cache_driver: apc
+
+monolog:
+    channels: ['command']
+    handlers:
+        main:
+            type: fingers_crossed
+            action_level: error
+            handler: nested
+        nested:
+            type: stream
+            path: '%kernel.logs_dir%/ui.log'
+            level: '%csweb_log_level%'
+            channels: ['!command']
+        console:
+            type: console
+            process_psr_3_messages: false
+        db:
+            type: service
+            id: cspro_monolog_handler
+            channels: ['!command']
+            
+        blob_break_logging:
+            type: rotating_file
+            path: '%kernel.logs_dir%/cases_process.log'
+            level: '%csweb_process_cases_log_level%'
+            channels: ["command"]

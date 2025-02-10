@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <link rel='icon' href={{asset('dist/img/favicon.ico')}} type='image/x-icon'/>
+
+        <title>CSWeb</title>
+
+        <!-- DataTables CSS -->
+        <link href={{asset('bower_components/datatables/dataTables.bootstrap4.min.css')}} rel="stylesheet">
+
+        <!-- Custom CSS -->
+        <link href={{asset('dist/css/sb-admin-2.css')}} rel="stylesheet">
+
+        <!-- Custom Fonts -->
+        <link href={{asset('bower_components/fontawesome-free/css/all.min.css')}} rel="stylesheet" type="text/css">
+
+        <!-- ALW - Custom CSS -->
+        <link href={{asset('dist/css/cspro-styles.css')}} rel="stylesheet">
+
+        {% block resources %} {% endblock %}
+    </head>
+
+    <body>
+        <div id="wrapper">
+
+            <ul class="navbar-nav navbar-cspro sidebar sidebar-dark accordion" id="side-menu">
+                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <a class="sidebar-brand d-flex align-items-center justify-content-center navbar-cspro" href="{{ path('dashboard') }}">
+                    <img src={{asset('dist/img/logo_silver.png')}} class="icon" >
+                    <p class="navbar navbar-version">CSWeb {{ csproVersion }}</p>
+                </a>
+                <!-- Divider -->
+                <hr class="sidebar-divider my-0">
+
+                <!-- /.navbar-header -->
+
+                {% if is_granted('ROLE_DATA_ALL') == true %}
+                    <li id="data-nav-item" class="nav-item">
+                        <a class="nav-link" href="{{ path('dashboard') }}">
+                            <i class="fas fa-fw fa-database"></i>
+                            <span>Data</span></a>
+                    </li>
+                {% endif %}
+                {% block nav %}
+                    {% if is_granted('ROLE_REPORTS_ALL') == true %}
+                        <li id="sync-report-nav-item" class="nav-item">
+                            <a class="nav-link collapsed" href="{{ path('sync-report') }}" 
+                               data-toggle="collapse" onclick={window.location.href="{{ path('sync-report') }}";}>
+                                <i class="fas fa-fw fa-table"></i>
+                                <span>Sync Report</span>
+                            </a>
+                        </li>
+                        <li id="map-report-nav-item" class="nav-item">
+                            <a class="nav-link collapsed" href="{{ path('map-report') }}" data-toggle="collapse" onclick={window.location.href="{{ path('map-report') }}";}>
+                                <i class="fas fa-fw fa-table"></i>
+                                <span>Map Report</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endblock %}
+                {# nav #}
+                {% if is_granted('ROLE_APPS_ALL') == true %}
+                    <li id="apps-nav-item" class="nav-item">
+                        <a class="nav-link" href="{{ path('apps') }}">
+                            <i class="fas fa-fw fa-desktop"></i>
+                            <span>Apps</span></a>
+                    </li>
+                    <li id="files-nav-item" class="nav-item">
+                        <a class="nav-link" href="{{ path('files') }}">
+                            <i class="fas fa-fw fa-file"></i>
+                            <span>Files</span></a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_USERS_ALL') == true %}
+                    <li id="users-nav-item" class="nav-item">
+                        <a class="nav-link" href="{{ path('users') }}">
+                            <i class="fas fa-fw fa-users"></i>
+                            <span>Users</span></a>
+                    </li>
+                {% endif %}
+                {% if is_granted('ROLE_ROLES_ALL') == true %}
+                    <li id="roles-nav-item" class="nav-item">
+                        <a class="nav-link" href="{{ path('roles') }}">
+                            <i class="fas fa-fw fa-user"></i>
+                            <span>Roles</span></a>
+                    </li>
+                {% endif %}
+                {% block navSettings %}
+                {% if is_granted('ROLE_SETTINGS_ALL') == true %}
+                    <li id="settings-nav-item" class="nav-item">
+                        <a class="nav-link collapsed" href="{{ path('dataSettings') }}" 
+                           data-toggle="collapse" onclick={window.location.href="{{ path('dataSettings') }}";}>
+                            <i class="fas fa-fw fa-cog"></i>
+                        <span>Settings</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% endblock %}
+            </ul>
+
+            {% block modal %} {% endblock %}
+            <!-- Content Wrapper -->
+            <div id="content-wrapper" class="d-flex flex-column">
+                    <nav class="navbar navbar-expand navbar-light topbar mb-4 static-top shadow navbar-cspro" role="navigation" style="margin-bottom: 0">
+                        <!-- Sidebar Toggle (Topbar) -->
+                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        {% set userinfo = app.request.cookies.has('username') ? app.request.cookies.get('username')  : null %}
+                        {% set accessToken = app.request.cookies.has('access_token') ? app.request.cookies.get('access_token') : null %}
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item mx-1">
+                                {{ userinfo }}
+                            </li>
+                            <li class="nav-item mx-1" >
+                                <a href="{{ path('logout') }}" class="nav-text-cspro"><i class="fas fa-sign-out-alt fa-fw"></i> Logout</a>
+                            </li>
+                            {% block helps %} {% endblock %}
+                        </ul>
+                        <!-- /.sidebar-collapse -->
+                    </nav>
+                <!-- /.navbar-static-side -->
+                <!-- Page Content -->
+                <div id="page-wrapper" class="container-fluid">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery -->
+    <script src={{asset('bower_components/jquery/jquery.min.js')}}></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src={{asset('bower_components/bootstrap/js/bootstrap.bundle.min.js')}}></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src={{asset('bower_components/jquery-easing/jquery.easing.min.js')}}></script>
+
+    <!-- DataTables JavaScript -->
+    <script src={{asset('bower_components/datatables/jquery.dataTables.min.js')}}></script>
+    <script src={{asset('bower_components/datatables/dataTables.bootstrap4.min.js')}}></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src={{asset('dist/js/sb-admin-2.min.js')}}></script>
+
+    <!-- Page-Level Scripts -->
+    {# Script block contains script tags to preserve syntax highlighting #}
+    {% block scripts %}
+
+        <script>
+            "use strict";
+            function showAlert(message, alertStyle) {
+                $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+                $("#alert").show();
+            }
+
+            $(document).ready(function () {
+
+                // Delete app functionality
+                (function () {
+                    var tr;
+
+                    $(".delete-button-class").on("click", function (event) {
+                        tr = $(event.target).closest("tr");
+                        var appName = $(tr).data("appname");
+                        var modalText = 'Are you sure you want to delete the application \"' + appName + '\"?';
+                        $("#delete-app-modal").find('.modal-body').text(modalText);
+                        $("#delete-app-modal").modal("show");
+                    });
+
+                    $("#delete-button").on("click", function (event) {
+                        event.preventDefault();
+                        $("#delete-app-modal").modal("hide");
+                        // get the user name of the nearest row
+                        var appName = $(tr).data("appname");
+                        $.ajax({
+                            type: "DELETE",
+                            url: "{{ url('apps') }}/" + encodeURIComponent(appName),
+                            dataType: "json",
+                            success: function (response) {
+                                if (response.code === 200) {
+                                    var alertMsg = "Application " + appName + " deleted";
+                                    showAlert(alertMsg, "alert alert-success");
+                                    $(tr).remove();
+                                } else {
+                                    var alertMsg = "Failed to delete application " + appName;
+                                    showAlert(alertMsg, "alert alert-danger");
+                                }
+                            },
+                            error: function (response) {
+                                if (response.status === 405) {
+                                    window.location.href = "{{ path('logout') }}";
+                                } else {
+                                    var alertMsg = "Failed to delete application " + appName;
+                                    showAlert(alertMsg, "alert alert-danger");
+                                }
+                            },
+                            failure: function (errMsg) {
+                                alert("error!");
+                            }
+                        });
+                    });
+                })();
+                // Spinner functionality
+                var $body = $("body");
+                $(document).ajaxStart(function (event, request, settings) {
+                    $body.addClass("loading");
+                });
+
+                $(document).ajaxComplete(function (event, request, settings) {
+                    $body.removeClass("loading");
+                });
+
+            });
+        </script>
+    {% endblock %} 
+    {# script #}
+
+    <div id="mainSpinner" class="spinner"><!-- Place at bottom of page --></div>
+</body>
+
+</html>

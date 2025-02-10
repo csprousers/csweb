@@ -1,0 +1,454 @@
+{
+	"variables": [],
+	"info": {
+		"name": "restUnitTests",
+		"_postman_id": "78aad061-a818-8b06-4c8f-6934f95b6b1d",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Cases",
+			"description": "",
+			"item": [
+				{
+					"name": "getToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"Token Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"access token retrieved : \" +  jsonData.access_token] = jsonData.access_token !== 'undefined';",
+									"postman.setGlobalVariable(\"oauth\", \"Bearer \" + jsonData.access_token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/token",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"client_id\":\"cspro_android\"\n,\"client_secret\":\"cspro\",\"grant_type\":\"password\",\"username\":\"admin\",\"password\":\"test1234\"}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "addCase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Add Case Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n  \"id\": \"{{caseId}}\",\n  \"data\": [\n    \"103110560031045031101123542010120611 91952105050\",\n    \"10311056003104503110231125101011081 92\",\n    \"10311056003104503110331105101011061 92\",\n    \"10311056003104503110432085101011049\",\n    \"10311056003104503110532065101011029\",\n    \"10311056003104503110631045101\",\n    \"20311056003104503111125021000522250006\"\n  ],\n  \"caseids\": \"031105600310450311\",\n  \"label\": \"\",\n  \"deleted\": false,\n  \"verified\": false,\n  \"clock\": [\n    {\n      \"deviceId\": \"54ee75ad2036\",\n      \"revision\": 1\n    }\n  ],\n  \"notes\": []\n}]"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "getCase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Get Case Status code is 200\"] = responseCode.code === 200;",
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"case id match! \" + jsonData.id  ] =  jsonData.id  === postman.getGlobalVariable(\"caseId\");",
+									" "
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases/{{caseId}}",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"client_id\":\"cspro_android\"\n,\"client_secret\":\"cspro\",\"grant_type\":\"password\",\"username\":\"admin\",\"password\":\"test1234\"}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "getCases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Get Cases Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "updateCase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Delete Case status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases/000dc003-43df-4f2c-8d96-cd9596eb368b",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"id\":\"000dc003-43df-4f2c-8d96-cd9596eb368b\",\"data\":[\"103110560031045031101123542010120611 91952105050\",\"10311056003104503110231125101011081 92\",\"10311056003104503110331105101011061 92\",\"10311056003104503110432085101011049\",\"10311056003104503110532065101011029\",\"10311056003104503110631045101\",\"20311056003104503111125021000522250006\"],\"caseids\":\"031105600310450311\",\"label\":\"\",\"deleted\":false,\"verified\":true,\"clock\":[{\"deviceId\":\"54ee75ad2036\",\"revision\":1}],\"notes\":[]}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "updateWithPost",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Update case using POST  Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"id\":\"{{caseId}}\",\"data\":[\"103110560031045031101123542010120611 91952105050\",\"10311056003104503110231125101011081 92\",\"10311056003104503110331105101011061 92\",\"10311056003104503110432085101011049\",\"10311056003104503110532065101011029\",\"10311056003104503110631045101\",\"20311056003104503111125021000522250006\"],\"caseids\":\"031105600310450311\",\"label\":\"\",\"deleted\":false,\"verified\":true,\"clock\":[{\"deviceId\":\"54ee75ad2036\",\"revision\":1}],\"notes\":[]}]"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "deleteCase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Delete Case  Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}/cases/{{caseId}}",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dictionary",
+			"description": "",
+			"item": [
+				{
+					"name": "getToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"tests[\"Token Status code is 200\"] = responseCode.code === 200;",
+									"tests[\"access token retrieved : \" +  jsonData.access_token] = jsonData.access_token !== 'undefined';",
+									"postman.setGlobalVariable(\"oauth\", \"Bearer \" + jsonData.access_token);"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/token",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"client_id\":\"cspro_android\"\n,\"client_secret\":\"cspro\",\"grant_type\":\"password\",\"username\":\"admin\",\"password\":\"test1234\"}"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "getDictionaries",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Get Dictionaries Status code is 200\"] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n  \"id\": \"000dc003-43df-4f2c-8d96-cd9596eb368b\",\n  \"data\": [\n    \"103110560031045031101123542010120611 91952105050\",\n    \"10311056003104503110231125101011081 92\",\n    \"10311056003104503110331105101011061 92\",\n    \"10311056003104503110432085101011049\",\n    \"10311056003104503110532065101011029\",\n    \"10311056003104503110631045101\",\n    \"20311056003104503111125021000522250006\"\n  ],\n  \"caseids\": \"031105600310450311\",\n  \"label\": \"\",\n  \"deleted\": false,\n  \"verified\": false,\n  \"clock\": [\n    {\n      \"deviceId\": \"54ee75ad2036\",\n      \"revision\": 1\n    }\n  ],\n  \"notes\": []\n}]"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "deleteDictionary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"delete dictionary successful or dictionary does not exist\"] = responseCode.code === 200 || responseCode.code === 404;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}",
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[Dictionary]\r\nVersion=CSPro 7.0\r\nLabel=Popstan Census\r\nName={{dictionaryName}}\r\nRecordTypeStart=1\r\nRecordTypeLen=1\r\nPositions=Relative\r\nZeroFill=Yes\r\nDecimalChar=No\r\n\r\n[Level]\r\nLabel=Questionnaire\r\nName=QUEST\r\n\r\n[IdItems]\r\n\r\n[Item]\r\nLabel=Province\r\nName=PROVINCE\r\nStart=2\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Province\r\nName=PROV_VS1\r\nValue=1;Artesia\r\nValue=2;Copal\r\nValue=3;Dari\r\nValue=4;Eris\r\nValue=5;Girda\r\nValue=6;Hali\r\nValue=7;Kerac\r\nValue=8;Lacuna\r\nValue=9;Laya\r\nValue=10;Lira\r\nValue=11;Matanga\r\nValue=12;Patan\r\nValue=13;Rift\r\nValue=14;Terra\r\nValue=15;Tumar\r\n\r\n[Item]\r\nLabel=District\r\nName=DISTRICT\r\nStart=4\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=District\r\nName=DIST_VS1\r\nValue=1:18\r\n\r\n[Item]\r\nLabel=Village\r\nName=VILLAGE\r\nStart=6\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Village\r\nName=VILLAGE_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Enumeration area\r\nName=EA\r\nStart=9\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Enumeration area\r\nName=EA_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Urban/Rural\r\nName=UR\r\nStart=12\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Urban/Rural\r\nName=UR_VS1\r\nValue=1;Urban\r\nValue=2;Rural\r\n\r\n[Item]\r\nLabel=Building number\r\nName=BUILDING\r\nStart=13\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Building number\r\nName=BUILDING_VS1\r\nValue=1:998;Building\r\nValue=999;Homeless\r\n\r\n[Item]\r\nLabel=Housing unit\r\nName=HU\r\nStart=16\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Housing unit\r\nName=HU_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Household number\r\nName=HH\r\nStart=19\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Household number\r\nName=HH_VS1\r\nValue=1:9\r\n\r\n[Record]\r\nLabel=Person Record\r\nName=PERSON\r\nRecordTypeValue='1'\r\nRequired=No\r\nMaxRecords=30\r\nRecordLen=49\r\n\r\n[Item]\r\nLabel=Line number\r\nName=LINE\r\nStart=20\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Line number\r\nName=LINE_VS1\r\nValue=1:30\r\n\r\n[Item]\r\nLabel=Relationship\r\nName=P02_REL\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Relationship\r\nName=P02_REL_VS1\r\nValue=1;Head\r\nValue=2;Spouse\r\nValue=3;Child\r\nValue=4;Parent\r\nValue=5;Other relative\r\nValue=6;Nonrelative\r\nValue=9;Not Reported\r\n\r\n[Item]\r\nLabel=Sex\r\nName=P03_SEX\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Sex\r\nName=P03_SEX_VS1\r\nValue=1;Male\r\nValue=2;Female\r\n\r\n[Item]\r\nLabel=Age\r\nName=P04_AGE\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Age\r\nName=P04_AGE_VS1\r\nValue=0:98\r\n\r\n[ValueSet]\r\nLabel=Age in 5 year groups\r\nName=P04_AGE_VS2\r\nValue=0:4;0 to 4 years\r\nValue=5:9;5 to 9 years\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\nValue=55:59;55 to 59 years\r\nValue=60:64;60 to 64 years\r\nValue=65:69;65 to 69 years\r\nValue=70:74;70 to 74 years\r\nValue=75:79;75 to 79 years\r\nValue=80:84;80 to 84 years\r\nValue=85:89;85 to 89 years\r\nValue=90:94;90 to 94 years\r\nValue=95:98;95 years and over\r\n\r\n[ValueSet]\r\nLabel=Age in 10 year groups\r\nName=P04_AGE_VS3\r\nValue=0:9;0 to 9 years\r\nValue=10:19;10 to 19 years\r\nValue=20:29;20 to 29 years\r\nValue=30:39;30 to 39 years\r\nValue=40:49;40 to 49 years\r\nValue=50:59;50 to 59 years\r\nValue=60:69;60 to 69 years\r\nValue=70:79;70 to 79 years\r\nValue=80:89;80 to 89 years\r\nValue=90:98;90 years and over\r\n\r\n[ValueSet]\r\nLabel=Age 10-54 in 5 year groups\r\nName=AGG_10_5\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\n\r\n[Item]\r\nLabel=Marital status\r\nName=P05_MS\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Marital status\r\nName=P05_MS_VS1\r\nValue=1;Married\r\nValue=2;Divorced\r\nValue=3;Separated\r\nValue=4;Widowed\r\nValue=5;Never Married\r\n\r\n[Item]\r\nLabel=Mother living\r\nName=P06_MOTHER\r\nStart=27\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Mother living\r\nName=P06_MOTHER_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=3;Don't know\r\n\r\n[Item]\r\nLabel=Place of birth\r\nName=P07_BIRTH\r\nStart=28\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Place of birth\r\nName=P07_BIRTH_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Not Reported\r\n\r\n[Item]\r\nLabel=Residence in 1995\r\nName=P08_RES95\r\nStart=30\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Residence in 1995\r\nName=P08_RES95_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Unknown\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Attending school\r\nName=P09_ATTEND\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Attending school\r\nName=P09_ATTEND_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR\r\nStart=33\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR_VS1\r\nValue=0;None\r\nValue=1:5;Primary\r\nValue=6:8;Middle School\r\nValue=9:12;High School\r\nValue=13:30;University\r\nValue=31:36;Technical\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Literacy\r\nName=P11_LITERACY\r\nStart=35\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Literacy\r\nName=P11_LITERACY_VS1\r\nValue=1;Literate\r\nValue=2;Illiterate\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Working\r\nName=P12_WORKING\r\nStart=36\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Working\r\nName=P12_WORKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Looking for work\r\nName=P13_LOOKING\r\nStart=37\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Looking for work\r\nName=P13_LOOKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT\r\nStart=38\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT_VS1\r\nValue=1;Had job\r\nValue=2;Believed job not available\r\nValue=3;Did not want job\r\nValue=4;Doing own housework\r\nValue=5;Going to school\r\nValue=6;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation\r\nName=P15_OCC\r\nStart=39\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation\r\nName=P15_OCC_VS1\r\nValue=1;Medical\r\nValue=2;Accountants\r\nValue=10:13;Artist Technical\r\nValue=20:21;Admin Managerial\r\nValue=30:34;Clerical Office\r\nValue=40:43;Sales Workers\r\nValue=50:54;Service Workers\r\nValue=60:65;Farmers, Fishers\r\nValue=70:79;Production Work\r\nValue=80:83;Transport Worker\r\nValue=90:92;Construction Trades\r\nValue=95;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC\r\nStart=39\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC_VS1\r\nValue=0;Social or personal Services\r\nValue=1;Professional, Technical\r\nValue=2;Public Administration\r\nValue=3;Clerical\r\nValue=4;Wholesale or Retail Industry\r\nValue=5;Service\r\nValue=6;Farming, Forestry, Fishing, Hunting\r\nValue=7;Tradesmen/Craftsmen\r\nValue=8;Transportation\r\nValue=9;Construction, other, not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry\r\nName=P16_IND\r\nStart=41\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry\r\nName=P16_IND_VS1\r\nValue=10;Hunting\r\nValue=11;Agriculture\r\nValue=12;Forestry\r\nValue=13;Fishing\r\nValue=20;Mining Quarrying\r\nValue=30;Food manufacture\r\nValue=31;Beverage Tobacco\r\nValue=32;Machinery Mfg\r\nValue=33;Wood products\r\nValue=34;Paper products\r\nValue=35;Chemical Petrol\r\nValue=36;Non-metal Manufa\r\nValue=37;Metal Industries\r\nValue=39;Jewelry Mfg\r\nValue=40;Energy supplies\r\nValue=41;Waterworks\r\nValue=42;Natural Gas Supply\r\nValue=43;Sanitation Services\r\nValue=50;Construction\r\nValue=60;Wholesale Trade\r\nValue=61;Retail Trade\r\nValue=62;Hotels, Restaurants\r\nValue=70;Transport\r\nValue=71;Storage\r\nValue=72;Communication\r\nValue=80;Financial Banks\r\nValue=81;Insurance\r\nValue=82;Real Estate\r\nValue=83;Business Service\r\nValue=90;Public Admin\r\nValue=91;Education\r\nValue=92;Medical Dental\r\nValue=93;Social Community\r\nValue=94;Recrtn Cultural\r\nValue=95;Personal HHold\r\nValue=98;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry (major groups)\r\nName=P16A_IND\r\nStart=41\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry (major groups)\r\nName=P16A_IND_VS1\r\nValue=0;Social or Personal Services\r\nValue=1;Farming, Forestry, Fishing, Hunting\r\nValue=2;Mining, Quarrying\r\nValue=3;Manufacturing\r\nValue=4;Utilities (Electricity, Gas, Water, Sanitation)\r\nValue=5;Construction\r\nValue=6;Commerce\r\nValue=7;Transport, Storage, Communication\r\nValue=8;Financing, Business Services\r\nValue=9;Public Administration and not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Work Status\r\nName=P17_WK_STATUS\r\nStart=43\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Work Status\r\nName=P17_WK_STATUS_VS1\r\nValue=1;Employer\r\nValue=2;Paid employee\r\nValue=3;Self-employed\r\nValue=4;Unpaid family worker\r\nValue=5;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Economically active\r\nName=ECON_ACTIVE\r\nStart=44\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Economically active\r\nName=ECON_ACTIVE_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born alive\r\nName=P18_BORN\r\nStart=45\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born alive\r\nName=P18_BORN_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children still living\r\nName=P19_LIVING\r\nStart=47\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children still living\r\nName=P19_LIVING_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12\r\nStart=49\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12_VS1\r\nValue=0:3\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Record]\r\nLabel=Housing Record\r\nName=HOUSING\r\nRecordTypeValue='2'\r\nRecordLen=38\r\n\r\n[Item]\r\nLabel=Type of housing\r\nName=H01_TYPE\r\nStart=20\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of housing\r\nName=H01_TYPE_VS1\r\nValue=1;Single family\r\nValue=2;Multi-family\r\nValue=3;Improvised\r\nValue=4;Mobile\r\nValue=5;Collective quarters\r\nValue=6;Homeless (none)\r\nValue=9;Not reported\r\n\r\n[Item]\r\nLabel=Wall type\r\nName=H02_WALL\r\nStart=21\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Wall type\r\nName=H02_WALL_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Roof type\r\nName=H03_ROOF\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Roof type\r\nName=H03_ROOF_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Floor type\r\nName=H04_FLOOR\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Floor type\r\nName=H04_FLOOR_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Tile/Marble\r\nValue=3;Wood\r\nValue=4;Leaves/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of rooms\r\nName=H05_ROOMS\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of rooms\r\nName=H05_ROOMS_VS1\r\nValue=1;01\r\nValue=2;02\r\nValue=3;03\r\nValue=4;04\r\nValue=5;05\r\nValue=6;06\r\nValue=7;07\r\nValue=8;08\r\nValue=9;09\r\nValue=10;10\r\nValue=11;11\r\nValue=12;12\r\nValue=13;13\r\nValue=14;14\r\nValue=15;15\r\nValue=16;16\r\nValue=17;17\r\nValue=18;18\r\nValue=19;19\r\nValue=20;20\r\nValue=99;Not reported\r\nValue='  ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Tenure\r\nName=H06_TENURE\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Tenure\r\nName=H06_TENURE_VS1\r\nValue=1;Owned\r\nValue=2;Paid rent\r\nValue=3;Rent free\r\nValue=4;Vacant\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Amount of rent paid\r\nName=H07_RENT\r\nStart=27\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Amount of rent paid\r\nName=H07_RENT_VS1\r\nValue=0:998\r\nValue=999;Not reported\r\nValue='   ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET\r\nStart=30\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET_VS1\r\nValue=1;Private toilet\r\nValue=2;Shared toilet\r\nValue=3;Outhouse\r\nValue=4;Pit\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH\r\nStart=31\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH_VS1\r\nValue=1;Exclusive\r\nValue=2;Shared\r\nValue=3;Hand basin\r\nValue=4;Portable tub or basin\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Source of water\r\nName=H10_WATER\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Source of water\r\nName=H10_WATER_VS1\r\nValue=1;Inside piped\r\nValue=2;Outside piped\r\nValue=3;Bottled or canned\r\nValue=4;Closed well or closed spring\r\nValue=5;Open well or spring\r\nValue=6;River/Stream/Other\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT\r\nStart=33\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT_VS1\r\nValue=1;Electric\r\nValue=2;Gas\r\nValue=3;Kerosene\r\nValue=4;Candle/Tallow\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL\r\nStart=34\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL_VS1\r\nValue=1;Electricity\r\nValue=2;Gas\r\nValue=3;Kerosene or oil\r\nValue=4;Coal or charcoal\r\nValue=5;Wood\r\nValue=6;Other\r\nValue=7;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS\r\nStart=35\r\nLen=4\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS_VS1\r\nValue=0;None\r\nValue=1;1 person\r\nValue=2;2 persons\r\nValue=3;3 persons\r\nValue=4;4 persons\r\nValue=5;5 persons\r\nValue=6;6 persons\r\nValue=7;7 persons\r\nValue=8;8 persons\r\nValue=9;9 persons\r\nValue=10:9999;10+ persons\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "addDictionary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"add dictionary successful or dictionary already exists\"] = responseCode.code === 200 || responseCode.code === 405;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/",
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[Dictionary]\r\nVersion=CSPro 7.0\r\nLabel=Popstan Census\r\nName={{dictionaryName}}\r\nRecordTypeStart=1\r\nRecordTypeLen=1\r\nPositions=Relative\r\nZeroFill=Yes\r\nDecimalChar=No\r\n\r\n[Level]\r\nLabel=Questionnaire\r\nName=QUEST\r\n\r\n[IdItems]\r\n\r\n[Item]\r\nLabel=Province\r\nName=PROVINCE\r\nStart=2\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Province\r\nName=PROV_VS1\r\nValue=1;Artesia\r\nValue=2;Copal\r\nValue=3;Dari\r\nValue=4;Eris\r\nValue=5;Girda\r\nValue=6;Hali\r\nValue=7;Kerac\r\nValue=8;Lacuna\r\nValue=9;Laya\r\nValue=10;Lira\r\nValue=11;Matanga\r\nValue=12;Patan\r\nValue=13;Rift\r\nValue=14;Terra\r\nValue=15;Tumar\r\n\r\n[Item]\r\nLabel=District\r\nName=DISTRICT\r\nStart=4\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=District\r\nName=DIST_VS1\r\nValue=1:18\r\n\r\n[Item]\r\nLabel=Village\r\nName=VILLAGE\r\nStart=6\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Village\r\nName=VILLAGE_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Enumeration area\r\nName=EA\r\nStart=9\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Enumeration area\r\nName=EA_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Urban/Rural\r\nName=UR\r\nStart=12\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Urban/Rural\r\nName=UR_VS1\r\nValue=1;Urban\r\nValue=2;Rural\r\n\r\n[Item]\r\nLabel=Building number\r\nName=BUILDING\r\nStart=13\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Building number\r\nName=BUILDING_VS1\r\nValue=1:998;Building\r\nValue=999;Homeless\r\n\r\n[Item]\r\nLabel=Housing unit\r\nName=HU\r\nStart=16\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Housing unit\r\nName=HU_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Household number\r\nName=HH\r\nStart=19\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Household number\r\nName=HH_VS1\r\nValue=1:9\r\n\r\n[Record]\r\nLabel=Person Record\r\nName=PERSON\r\nRecordTypeValue='1'\r\nRequired=No\r\nMaxRecords=30\r\nRecordLen=49\r\n\r\n[Item]\r\nLabel=Line number\r\nName=LINE\r\nStart=20\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Line number\r\nName=LINE_VS1\r\nValue=1:30\r\n\r\n[Item]\r\nLabel=Relationship\r\nName=P02_REL\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Relationship\r\nName=P02_REL_VS1\r\nValue=1;Head\r\nValue=2;Spouse\r\nValue=3;Child\r\nValue=4;Parent\r\nValue=5;Other relative\r\nValue=6;Nonrelative\r\nValue=9;Not Reported\r\n\r\n[Item]\r\nLabel=Sex\r\nName=P03_SEX\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Sex\r\nName=P03_SEX_VS1\r\nValue=1;Male\r\nValue=2;Female\r\n\r\n[Item]\r\nLabel=Age\r\nName=P04_AGE\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Age\r\nName=P04_AGE_VS1\r\nValue=0:98\r\n\r\n[ValueSet]\r\nLabel=Age in 5 year groups\r\nName=P04_AGE_VS2\r\nValue=0:4;0 to 4 years\r\nValue=5:9;5 to 9 years\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\nValue=55:59;55 to 59 years\r\nValue=60:64;60 to 64 years\r\nValue=65:69;65 to 69 years\r\nValue=70:74;70 to 74 years\r\nValue=75:79;75 to 79 years\r\nValue=80:84;80 to 84 years\r\nValue=85:89;85 to 89 years\r\nValue=90:94;90 to 94 years\r\nValue=95:98;95 years and over\r\n\r\n[ValueSet]\r\nLabel=Age in 10 year groups\r\nName=P04_AGE_VS3\r\nValue=0:9;0 to 9 years\r\nValue=10:19;10 to 19 years\r\nValue=20:29;20 to 29 years\r\nValue=30:39;30 to 39 years\r\nValue=40:49;40 to 49 years\r\nValue=50:59;50 to 59 years\r\nValue=60:69;60 to 69 years\r\nValue=70:79;70 to 79 years\r\nValue=80:89;80 to 89 years\r\nValue=90:98;90 years and over\r\n\r\n[ValueSet]\r\nLabel=Age 10-54 in 5 year groups\r\nName=AGG_10_5\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\n\r\n[Item]\r\nLabel=Marital status\r\nName=P05_MS\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Marital status\r\nName=P05_MS_VS1\r\nValue=1;Married\r\nValue=2;Divorced\r\nValue=3;Separated\r\nValue=4;Widowed\r\nValue=5;Never Married\r\n\r\n[Item]\r\nLabel=Mother living\r\nName=P06_MOTHER\r\nStart=27\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Mother living\r\nName=P06_MOTHER_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=3;Don't know\r\n\r\n[Item]\r\nLabel=Place of birth\r\nName=P07_BIRTH\r\nStart=28\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Place of birth\r\nName=P07_BIRTH_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Not Reported\r\n\r\n[Item]\r\nLabel=Residence in 1995\r\nName=P08_RES95\r\nStart=30\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Residence in 1995\r\nName=P08_RES95_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Unknown\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Attending school\r\nName=P09_ATTEND\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Attending school\r\nName=P09_ATTEND_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR\r\nStart=33\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR_VS1\r\nValue=0;None\r\nValue=1:5;Primary\r\nValue=6:8;Middle School\r\nValue=9:12;High School\r\nValue=13:30;University\r\nValue=31:36;Technical\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Literacy\r\nName=P11_LITERACY\r\nStart=35\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Literacy\r\nName=P11_LITERACY_VS1\r\nValue=1;Literate\r\nValue=2;Illiterate\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Working\r\nName=P12_WORKING\r\nStart=36\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Working\r\nName=P12_WORKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Looking for work\r\nName=P13_LOOKING\r\nStart=37\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Looking for work\r\nName=P13_LOOKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT\r\nStart=38\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT_VS1\r\nValue=1;Had job\r\nValue=2;Believed job not available\r\nValue=3;Did not want job\r\nValue=4;Doing own housework\r\nValue=5;Going to school\r\nValue=6;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation\r\nName=P15_OCC\r\nStart=39\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation\r\nName=P15_OCC_VS1\r\nValue=1;Medical\r\nValue=2;Accountants\r\nValue=10:13;Artist Technical\r\nValue=20:21;Admin Managerial\r\nValue=30:34;Clerical Office\r\nValue=40:43;Sales Workers\r\nValue=50:54;Service Workers\r\nValue=60:65;Farmers, Fishers\r\nValue=70:79;Production Work\r\nValue=80:83;Transport Worker\r\nValue=90:92;Construction Trades\r\nValue=95;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC\r\nStart=39\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC_VS1\r\nValue=0;Social or personal Services\r\nValue=1;Professional, Technical\r\nValue=2;Public Administration\r\nValue=3;Clerical\r\nValue=4;Wholesale or Retail Industry\r\nValue=5;Service\r\nValue=6;Farming, Forestry, Fishing, Hunting\r\nValue=7;Tradesmen/Craftsmen\r\nValue=8;Transportation\r\nValue=9;Construction, other, not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry\r\nName=P16_IND\r\nStart=41\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry\r\nName=P16_IND_VS1\r\nValue=10;Hunting\r\nValue=11;Agriculture\r\nValue=12;Forestry\r\nValue=13;Fishing\r\nValue=20;Mining Quarrying\r\nValue=30;Food manufacture\r\nValue=31;Beverage Tobacco\r\nValue=32;Machinery Mfg\r\nValue=33;Wood products\r\nValue=34;Paper products\r\nValue=35;Chemical Petrol\r\nValue=36;Non-metal Manufa\r\nValue=37;Metal Industries\r\nValue=39;Jewelry Mfg\r\nValue=40;Energy supplies\r\nValue=41;Waterworks\r\nValue=42;Natural Gas Supply\r\nValue=43;Sanitation Services\r\nValue=50;Construction\r\nValue=60;Wholesale Trade\r\nValue=61;Retail Trade\r\nValue=62;Hotels, Restaurants\r\nValue=70;Transport\r\nValue=71;Storage\r\nValue=72;Communication\r\nValue=80;Financial Banks\r\nValue=81;Insurance\r\nValue=82;Real Estate\r\nValue=83;Business Service\r\nValue=90;Public Admin\r\nValue=91;Education\r\nValue=92;Medical Dental\r\nValue=93;Social Community\r\nValue=94;Recrtn Cultural\r\nValue=95;Personal HHold\r\nValue=98;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry (major groups)\r\nName=P16A_IND\r\nStart=41\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry (major groups)\r\nName=P16A_IND_VS1\r\nValue=0;Social or Personal Services\r\nValue=1;Farming, Forestry, Fishing, Hunting\r\nValue=2;Mining, Quarrying\r\nValue=3;Manufacturing\r\nValue=4;Utilities (Electricity, Gas, Water, Sanitation)\r\nValue=5;Construction\r\nValue=6;Commerce\r\nValue=7;Transport, Storage, Communication\r\nValue=8;Financing, Business Services\r\nValue=9;Public Administration and not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Work Status\r\nName=P17_WK_STATUS\r\nStart=43\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Work Status\r\nName=P17_WK_STATUS_VS1\r\nValue=1;Employer\r\nValue=2;Paid employee\r\nValue=3;Self-employed\r\nValue=4;Unpaid family worker\r\nValue=5;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Economically active\r\nName=ECON_ACTIVE\r\nStart=44\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Economically active\r\nName=ECON_ACTIVE_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born alive\r\nName=P18_BORN\r\nStart=45\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born alive\r\nName=P18_BORN_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children still living\r\nName=P19_LIVING\r\nStart=47\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children still living\r\nName=P19_LIVING_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12\r\nStart=49\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12_VS1\r\nValue=0:3\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Record]\r\nLabel=Housing Record\r\nName=HOUSING\r\nRecordTypeValue='2'\r\nRecordLen=38\r\n\r\n[Item]\r\nLabel=Type of housing\r\nName=H01_TYPE\r\nStart=20\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of housing\r\nName=H01_TYPE_VS1\r\nValue=1;Single family\r\nValue=2;Multi-family\r\nValue=3;Improvised\r\nValue=4;Mobile\r\nValue=5;Collective quarters\r\nValue=6;Homeless (none)\r\nValue=9;Not reported\r\n\r\n[Item]\r\nLabel=Wall type\r\nName=H02_WALL\r\nStart=21\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Wall type\r\nName=H02_WALL_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Roof type\r\nName=H03_ROOF\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Roof type\r\nName=H03_ROOF_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Floor type\r\nName=H04_FLOOR\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Floor type\r\nName=H04_FLOOR_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Tile/Marble\r\nValue=3;Wood\r\nValue=4;Leaves/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of rooms\r\nName=H05_ROOMS\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of rooms\r\nName=H05_ROOMS_VS1\r\nValue=1;01\r\nValue=2;02\r\nValue=3;03\r\nValue=4;04\r\nValue=5;05\r\nValue=6;06\r\nValue=7;07\r\nValue=8;08\r\nValue=9;09\r\nValue=10;10\r\nValue=11;11\r\nValue=12;12\r\nValue=13;13\r\nValue=14;14\r\nValue=15;15\r\nValue=16;16\r\nValue=17;17\r\nValue=18;18\r\nValue=19;19\r\nValue=20;20\r\nValue=99;Not reported\r\nValue='  ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Tenure\r\nName=H06_TENURE\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Tenure\r\nName=H06_TENURE_VS1\r\nValue=1;Owned\r\nValue=2;Paid rent\r\nValue=3;Rent free\r\nValue=4;Vacant\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Amount of rent paid\r\nName=H07_RENT\r\nStart=27\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Amount of rent paid\r\nName=H07_RENT_VS1\r\nValue=0:998\r\nValue=999;Not reported\r\nValue='   ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET\r\nStart=30\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET_VS1\r\nValue=1;Private toilet\r\nValue=2;Shared toilet\r\nValue=3;Outhouse\r\nValue=4;Pit\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH\r\nStart=31\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH_VS1\r\nValue=1;Exclusive\r\nValue=2;Shared\r\nValue=3;Hand basin\r\nValue=4;Portable tub or basin\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Source of water\r\nName=H10_WATER\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Source of water\r\nName=H10_WATER_VS1\r\nValue=1;Inside piped\r\nValue=2;Outside piped\r\nValue=3;Bottled or canned\r\nValue=4;Closed well or closed spring\r\nValue=5;Open well or spring\r\nValue=6;River/Stream/Other\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT\r\nStart=33\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT_VS1\r\nValue=1;Electric\r\nValue=2;Gas\r\nValue=3;Kerosene\r\nValue=4;Candle/Tallow\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL\r\nStart=34\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL_VS1\r\nValue=1;Electricity\r\nValue=2;Gas\r\nValue=3;Kerosene or oil\r\nValue=4;Coal or charcoal\r\nValue=5;Wood\r\nValue=6;Other\r\nValue=7;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS\r\nStart=35\r\nLen=4\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS_VS1\r\nValue=0;None\r\nValue=1;1 person\r\nValue=2;2 persons\r\nValue=3;3 persons\r\nValue=4;4 persons\r\nValue=5;5 persons\r\nValue=6;6 persons\r\nValue=7;7 persons\r\nValue=8;8 persons\r\nValue=9;9 persons\r\nValue=10:9999;10+ persons\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				},
+				{
+					"name": "modifyDictionary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[responseBody] = responseCode.code === 200;"
+								]
+							}
+						}
+					],
+					"request": {
+						"url": "http://127.0.0.1/cspro/api/dictionaries/{{dictionaryName}}",
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "text/plain",
+								"description": ""
+							},
+							{
+								"key": "Authorization",
+								"value": "{{oauth}}",
+								"description": ""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[Dictionary]\r\nVersion=CSPro 7.0\r\nLabel=Popstan Census\r\nName={{dictionaryName}}\r\nRecordTypeStart=1\r\nRecordTypeLen=1\r\nPositions=Relative\r\nZeroFill=Yes\r\nDecimalChar=No\r\n\r\n[Level]\r\nLabel=Questionnaire\r\nName=QUEST\r\n\r\n[IdItems]\r\n\r\n[Item]\r\nLabel=Province\r\nName=PROVINCE\r\nStart=2\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Province\r\nName=PROV_VS1\r\nValue=1;Artesia\r\nValue=2;Copal\r\nValue=3;Dari\r\nValue=4;Eris\r\nValue=5;Girda\r\nValue=6;Hali\r\nValue=7;Kerac\r\nValue=8;Lacuna\r\nValue=9;Laya\r\nValue=10;Lira\r\nValue=11;Matanga\r\nValue=12;Patan\r\nValue=13;Rift\r\nValue=14;Terra\r\nValue=15;Tumar\r\n\r\n[Item]\r\nLabel=District\r\nName=DISTRICT\r\nStart=4\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=District\r\nName=DIST_VS1\r\nValue=1:18\r\n\r\n[Item]\r\nLabel=Village\r\nName=VILLAGE\r\nStart=6\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Village\r\nName=VILLAGE_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Enumeration area\r\nName=EA\r\nStart=9\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Enumeration area\r\nName=EA_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Urban/Rural\r\nName=UR\r\nStart=12\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Urban/Rural\r\nName=UR_VS1\r\nValue=1;Urban\r\nValue=2;Rural\r\n\r\n[Item]\r\nLabel=Building number\r\nName=BUILDING\r\nStart=13\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Building number\r\nName=BUILDING_VS1\r\nValue=1:998;Building\r\nValue=999;Homeless\r\n\r\n[Item]\r\nLabel=Housing unit\r\nName=HU\r\nStart=16\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Housing unit\r\nName=HU_VS1\r\nValue=1:999\r\n\r\n[Item]\r\nLabel=Household number\r\nName=HH\r\nStart=19\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Household number\r\nName=HH_VS1\r\nValue=1:9\r\n\r\n[Record]\r\nLabel=Person Record\r\nName=PERSON\r\nRecordTypeValue='1'\r\nRequired=No\r\nMaxRecords=30\r\nRecordLen=49\r\n\r\n[Item]\r\nLabel=Line number\r\nName=LINE\r\nStart=20\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Line number\r\nName=LINE_VS1\r\nValue=1:30\r\n\r\n[Item]\r\nLabel=Relationship\r\nName=P02_REL\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Relationship\r\nName=P02_REL_VS1\r\nValue=1;Head\r\nValue=2;Spouse\r\nValue=3;Child\r\nValue=4;Parent\r\nValue=5;Other relative\r\nValue=6;Nonrelative\r\nValue=9;Not Reported\r\n\r\n[Item]\r\nLabel=Sex\r\nName=P03_SEX\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Sex\r\nName=P03_SEX_VS1\r\nValue=1;Male\r\nValue=2;Female\r\n\r\n[Item]\r\nLabel=Age\r\nName=P04_AGE\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Age\r\nName=P04_AGE_VS1\r\nValue=0:98\r\n\r\n[ValueSet]\r\nLabel=Age in 5 year groups\r\nName=P04_AGE_VS2\r\nValue=0:4;0 to 4 years\r\nValue=5:9;5 to 9 years\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\nValue=55:59;55 to 59 years\r\nValue=60:64;60 to 64 years\r\nValue=65:69;65 to 69 years\r\nValue=70:74;70 to 74 years\r\nValue=75:79;75 to 79 years\r\nValue=80:84;80 to 84 years\r\nValue=85:89;85 to 89 years\r\nValue=90:94;90 to 94 years\r\nValue=95:98;95 years and over\r\n\r\n[ValueSet]\r\nLabel=Age in 10 year groups\r\nName=P04_AGE_VS3\r\nValue=0:9;0 to 9 years\r\nValue=10:19;10 to 19 years\r\nValue=20:29;20 to 29 years\r\nValue=30:39;30 to 39 years\r\nValue=40:49;40 to 49 years\r\nValue=50:59;50 to 59 years\r\nValue=60:69;60 to 69 years\r\nValue=70:79;70 to 79 years\r\nValue=80:89;80 to 89 years\r\nValue=90:98;90 years and over\r\n\r\n[ValueSet]\r\nLabel=Age 10-54 in 5 year groups\r\nName=AGG_10_5\r\nValue=10:14;10 to 14 years\r\nValue=15:19;15 to 19 years\r\nValue=20:24;20 to 24 years\r\nValue=25:29;25 to 29 years\r\nValue=30:34;30 to 34 years\r\nValue=35:39;35 to 39 years\r\nValue=40:44;40 to 44 years\r\nValue=45:49;45 to 49 years\r\nValue=50:54;50 to 54 years\r\n\r\n[Item]\r\nLabel=Marital status\r\nName=P05_MS\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Marital status\r\nName=P05_MS_VS1\r\nValue=1;Married\r\nValue=2;Divorced\r\nValue=3;Separated\r\nValue=4;Widowed\r\nValue=5;Never Married\r\n\r\n[Item]\r\nLabel=Mother living\r\nName=P06_MOTHER\r\nStart=27\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Mother living\r\nName=P06_MOTHER_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=3;Don't know\r\n\r\n[Item]\r\nLabel=Place of birth\r\nName=P07_BIRTH\r\nStart=28\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Place of birth\r\nName=P07_BIRTH_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Not Reported\r\n\r\n[Item]\r\nLabel=Residence in 1995\r\nName=P08_RES95\r\nStart=30\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Residence in 1995\r\nName=P08_RES95_VS1\r\nValue=1:15;Popstan\r\nValue=21;Endar\r\nValue=22;Victoria\r\nValue=23:27;Africa\r\nValue=40:44;Middle East\r\nValue=50:53;Asia\r\nValue=70:74;Europe\r\nValue=80:84;Americas\r\nValue=0;Unknown\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Attending school\r\nName=P09_ATTEND\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Attending school\r\nName=P09_ATTEND_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR\r\nStart=33\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Highest grade completed\r\nName=P10_HIGH_GR_VS1\r\nValue=0;None\r\nValue=1:5;Primary\r\nValue=6:8;Middle School\r\nValue=9:12;High School\r\nValue=13:30;University\r\nValue=31:36;Technical\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Literacy\r\nName=P11_LITERACY\r\nStart=35\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Literacy\r\nName=P11_LITERACY_VS1\r\nValue=1;Literate\r\nValue=2;Illiterate\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Working\r\nName=P12_WORKING\r\nStart=36\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Working\r\nName=P12_WORKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Looking for work\r\nName=P13_LOOKING\r\nStart=37\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Looking for work\r\nName=P13_LOOKING_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT\r\nStart=38\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Why not looking for work\r\nName=P14_WHY_NOT_VS1\r\nValue=1;Had job\r\nValue=2;Believed job not available\r\nValue=3;Did not want job\r\nValue=4;Doing own housework\r\nValue=5;Going to school\r\nValue=6;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation\r\nName=P15_OCC\r\nStart=39\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation\r\nName=P15_OCC_VS1\r\nValue=1;Medical\r\nValue=2;Accountants\r\nValue=10:13;Artist Technical\r\nValue=20:21;Admin Managerial\r\nValue=30:34;Clerical Office\r\nValue=40:43;Sales Workers\r\nValue=50:54;Service Workers\r\nValue=60:65;Farmers, Fishers\r\nValue=70:79;Production Work\r\nValue=80:83;Transport Worker\r\nValue=90:92;Construction Trades\r\nValue=95;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC\r\nStart=39\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Occupation (major groups)\r\nName=P15A_OCC_VS1\r\nValue=0;Social or personal Services\r\nValue=1;Professional, Technical\r\nValue=2;Public Administration\r\nValue=3;Clerical\r\nValue=4;Wholesale or Retail Industry\r\nValue=5;Service\r\nValue=6;Farming, Forestry, Fishing, Hunting\r\nValue=7;Tradesmen/Craftsmen\r\nValue=8;Transportation\r\nValue=9;Construction, other, not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry\r\nName=P16_IND\r\nStart=41\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry\r\nName=P16_IND_VS1\r\nValue=10;Hunting\r\nValue=11;Agriculture\r\nValue=12;Forestry\r\nValue=13;Fishing\r\nValue=20;Mining Quarrying\r\nValue=30;Food manufacture\r\nValue=31;Beverage Tobacco\r\nValue=32;Machinery Mfg\r\nValue=33;Wood products\r\nValue=34;Paper products\r\nValue=35;Chemical Petrol\r\nValue=36;Non-metal Manufa\r\nValue=37;Metal Industries\r\nValue=39;Jewelry Mfg\r\nValue=40;Energy supplies\r\nValue=41;Waterworks\r\nValue=42;Natural Gas Supply\r\nValue=43;Sanitation Services\r\nValue=50;Construction\r\nValue=60;Wholesale Trade\r\nValue=61;Retail Trade\r\nValue=62;Hotels, Restaurants\r\nValue=70;Transport\r\nValue=71;Storage\r\nValue=72;Communication\r\nValue=80;Financial Banks\r\nValue=81;Insurance\r\nValue=82;Real Estate\r\nValue=83;Business Service\r\nValue=90;Public Admin\r\nValue=91;Education\r\nValue=92;Medical Dental\r\nValue=93;Social Community\r\nValue=94;Recrtn Cultural\r\nValue=95;Personal HHold\r\nValue=98;Other\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Industry (major groups)\r\nName=P16A_IND\r\nStart=41\r\nLen=1\r\nItemType=SubItem\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Industry (major groups)\r\nName=P16A_IND_VS1\r\nValue=0;Social or Personal Services\r\nValue=1;Farming, Forestry, Fishing, Hunting\r\nValue=2;Mining, Quarrying\r\nValue=3;Manufacturing\r\nValue=4;Utilities (Electricity, Gas, Water, Sanitation)\r\nValue=5;Construction\r\nValue=6;Commerce\r\nValue=7;Transport, Storage, Communication\r\nValue=8;Financing, Business Services\r\nValue=9;Public Administration and not reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Work Status\r\nName=P17_WK_STATUS\r\nStart=43\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Work Status\r\nName=P17_WK_STATUS_VS1\r\nValue=1;Employer\r\nValue=2;Paid employee\r\nValue=3;Self-employed\r\nValue=4;Unpaid family worker\r\nValue=5;Other\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Economically active\r\nName=ECON_ACTIVE\r\nStart=44\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Economically active\r\nName=ECON_ACTIVE_VS1\r\nValue=1;Yes\r\nValue=2;No\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born alive\r\nName=P18_BORN\r\nStart=45\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born alive\r\nName=P18_BORN_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children still living\r\nName=P19_LIVING\r\nStart=47\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children still living\r\nName=P19_LIVING_VS1\r\nValue=0;None\r\nValue=1;1\r\nValue=2;2\r\nValue=3;3\r\nValue=4;4\r\nValue=5;5\r\nValue=6;6\r\nValue=7;7\r\nValue=8;8\r\nValue=9;9\r\nValue=10:20;10+\r\nValue=99;Not Reported\r\nValue='  ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12\r\nStart=49\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of children born in last 12 months\r\nName=P20_BORN12_VS1\r\nValue=0:3\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Record]\r\nLabel=Housing Record\r\nName=HOUSING\r\nRecordTypeValue='2'\r\nRecordLen=38\r\n\r\n[Item]\r\nLabel=Type of housing\r\nName=H01_TYPE\r\nStart=20\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of housing\r\nName=H01_TYPE_VS1\r\nValue=1;Single family\r\nValue=2;Multi-family\r\nValue=3;Improvised\r\nValue=4;Mobile\r\nValue=5;Collective quarters\r\nValue=6;Homeless (none)\r\nValue=9;Not reported\r\n\r\n[Item]\r\nLabel=Wall type\r\nName=H02_WALL\r\nStart=21\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Wall type\r\nName=H02_WALL_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Roof type\r\nName=H03_ROOF\r\nStart=22\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Roof type\r\nName=H03_ROOF_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Metal\r\nValue=3;Wood\r\nValue=4;Bamboo/Mud/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Floor type\r\nName=H04_FLOOR\r\nStart=23\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Floor type\r\nName=H04_FLOOR_VS1\r\nValue=1;Stone/Cement\r\nValue=2;Tile/Marble\r\nValue=3;Wood\r\nValue=4;Leaves/Reed\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not Reported\r\nValue=' ';Not Applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of rooms\r\nName=H05_ROOMS\r\nStart=24\r\nLen=2\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of rooms\r\nName=H05_ROOMS_VS1\r\nValue=1;01\r\nValue=2;02\r\nValue=3;03\r\nValue=4;04\r\nValue=5;05\r\nValue=6;06\r\nValue=7;07\r\nValue=8;08\r\nValue=9;09\r\nValue=10;10\r\nValue=11;11\r\nValue=12;12\r\nValue=13;13\r\nValue=14;14\r\nValue=15;15\r\nValue=16;16\r\nValue=17;17\r\nValue=18;18\r\nValue=19;19\r\nValue=20;20\r\nValue=99;Not reported\r\nValue='  ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Tenure\r\nName=H06_TENURE\r\nStart=26\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Tenure\r\nName=H06_TENURE_VS1\r\nValue=1;Owned\r\nValue=2;Paid rent\r\nValue=3;Rent free\r\nValue=4;Vacant\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Amount of rent paid\r\nName=H07_RENT\r\nStart=27\r\nLen=3\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Amount of rent paid\r\nName=H07_RENT_VS1\r\nValue=0:998\r\nValue=999;Not reported\r\nValue='   ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET\r\nStart=30\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of toilet facilities\r\nName=H08_TOILET_VS1\r\nValue=1;Private toilet\r\nValue=2;Shared toilet\r\nValue=3;Outhouse\r\nValue=4;Pit\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH\r\nStart=31\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Type of bathing facilities\r\nName=H09_BATH_VS1\r\nValue=1;Exclusive\r\nValue=2;Shared\r\nValue=3;Hand basin\r\nValue=4;Portable tub or basin\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Source of water\r\nName=H10_WATER\r\nStart=32\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Source of water\r\nName=H10_WATER_VS1\r\nValue=1;Inside piped\r\nValue=2;Outside piped\r\nValue=3;Bottled or canned\r\nValue=4;Closed well or closed spring\r\nValue=5;Open well or spring\r\nValue=6;River/Stream/Other\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT\r\nStart=33\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for lighting\r\nName=H11_LIGHT_VS1\r\nValue=1;Electric\r\nValue=2;Gas\r\nValue=3;Kerosene\r\nValue=4;Candle/Tallow\r\nValue=5;Other\r\nValue=6;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL\r\nStart=34\r\nLen=1\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Fuel for cooking\r\nName=H12_FUEL_VS1\r\nValue=1;Electricity\r\nValue=2;Gas\r\nValue=3;Kerosene or oil\r\nValue=4;Coal or charcoal\r\nValue=5;Wood\r\nValue=6;Other\r\nValue=7;None\r\nValue=9;Not reported\r\nValue=' ';Not applicable\r\nName=NOTAPPL,Special\r\n\r\n[Item]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS\r\nStart=35\r\nLen=4\r\nZeroFill=Yes\r\n\r\n[ValueSet]\r\nLabel=Number of persons in the household\r\nName=H13_PERSONS_VS1\r\nValue=0;None\r\nValue=1;1 person\r\nValue=2;2 persons\r\nValue=3;3 persons\r\nValue=4;4 persons\r\nValue=5;5 persons\r\nValue=6;6 persons\r\nValue=7;7 persons\r\nValue=8;8 persons\r\nValue=9;9 persons\r\nValue=10:9999;10+ persons\r\n"
+						},
+						"description": ""
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

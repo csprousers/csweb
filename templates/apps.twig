@@ -1,0 +1,166 @@
+{% extends "base.twig" %}
+{% block modal %}
+    <!-- delete app modal Content -->
+    <div id="delete-app-modal" class="modal fade" role="dialog" aria-labelledby="delete-app-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="delete-user-modal-title">Delete Application</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the application? </p>
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger"  id="delete-button">Yes</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- delete app modal end -->
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/introduction_to_csweb.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div id="alert" class="alert-placeholder-cspro alert-margin-cspro">
+            </div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- ALW - Create margin above panel heading -->
+                <div class="card-header py-2">
+                    <i class="fas fa-desktop fa-fw"></i> Applications
+                </div>
+                <!-- /.panel-heading -->
+                 <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th class="col-3">Name</th>
+                                <th class="col-5">Description</th>
+                                <th class="col-3">Build Date</th>
+                                <th class="col-2">Download</th>
+                                <th class="col-2">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in apps %}
+                                <tr data-appname="{{ app.name}}" >
+                                    <td>{{ app.name}}</td>
+                                    <td>{{ app.description}}</td>
+                                    <td>{{ app.buildTime | date("D M j Y G:i") }}</td>
+                                    <td><a href="{{path('downloadApp',{'appname':app.name})}}"><i class="fas fa-download fa-fw"></i></a></td>
+                                    <td><a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a></td>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+                 </div>                         
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-light" role="alert"><p>To install an application on a mobile device choose <i>Add Application</i> from the menu, choose <i>CSWeb</i> and enter <i>{{ apiUrl }}</i> for the server.</p>
+                <p>To upload an application to the server use the <i>Deploy Applications</i> tool in CSPro.</p></div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+{% endblock %}
+{# content #}
+
+{% block scripts %}
+    <!-- Page-Level Scripts -->
+    <script>
+        "use strict";
+        function showAlert(message, alertStyle) {
+            $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+            $("#alert").show();
+        }
+
+        $(document).ready(function () {
+            $("#apps-nav-item").removeClass('nav-item');
+            $("#apps-nav-item").addClass('nav-item active');
+            // Delete app functionality
+            (function () {
+                var tr;
+
+                $(".delete-button-class").on("click", function (event) {
+                    tr = $(event.target).closest("tr");
+                    var appName = $(tr).data("appname");
+                    var modalText = 'Are you sure you want to delete the application \"' + appName + '\"?';
+                    $("#delete-app-modal").find('.modal-body').text(modalText);
+                    $("#delete-app-modal").modal("show");
+                });
+
+                $("#delete-button").on("click", function (event) {
+                    event.preventDefault();
+                    $("#delete-app-modal").modal("hide");
+                    // get the user name of the nearest row
+                    var appName = $(tr).data("appname");
+                    $.ajax({
+                        type: "DELETE",
+                        url: "{{ url('apps') }}/" + encodeURIComponent(appName),
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                var alertMsg = "Application " + appName + " deleted";
+                                showAlert(alertMsg, "alert alert-success");
+                                $(tr).remove();
+                            } else {
+                                var alertMsg = "Failed to delete application " + appName;
+                                showAlert(alertMsg, "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            if (response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                var alertMsg = "Failed to delete application " + appName;
+                                showAlert(alertMsg, "alert alert-danger");
+                            }
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                });
+            })();
+            // Spinner functionality
+            var $body = $("body");
+            $(document).ajaxStart(function (event, request, settings) {
+                $body.addClass("loading");
+            });
+
+            $(document).ajaxComplete(function (event, request, settings) {
+                $body.removeClass("loading");
+            });
+
+        });
+    </script>
+{% endblock %}
+{# scripts #}

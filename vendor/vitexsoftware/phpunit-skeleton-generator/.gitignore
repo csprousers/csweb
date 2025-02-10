@@ -1,0 +1,16 @@
+build/phar
+build/*.phar
+.idea
+cache.properties
+composer.phar
+composer.lock
+vendor
+/nbproject/private/
+/debian/phpunit-skelgen/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/phpunit-skelgen.debhelper.log
+/debian/phpunit-skelgen.substvars
+/debian/files
+/phpunit-skelgen.phar
+/phpunit-skeleton-generator.phar

@@ -1,0 +1,60 @@
+imports:
+    - { resource: parameters.yml }
+    - { resource: parameters.php }
+    - { resource: security.yml }
+    - { resource: services.yml }
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: en
+    #memory limit for JSON body uploading cases in MB. if the cases sent exceeds this limit, the content 
+    #is first written to disk and streamed for processing. For improving performance increase the in memory 
+    #processing memory limit
+    csweb_api_max_json_memory_limit: 5
+    #script execution time in seconds used for long processing during updating cases or importing users. 
+    csweb_api_max_script_execution_time: 300
+    #max import limit - if the limit is increased, may have to increase the script execution time limit as well
+    csweb_api_max_import: 100000
+    #maximum allowed byte size for binary content download is 50MB
+    csweb_max_sync_download_packet_size: 52428800
+
+framework:
+    #esi: ~
+    #translator: { fallbacks: ['%locale%'] }
+    secret: '%secret%'
+    router:
+        resource: '%kernel.project_dir%/app/config/api/routing.yml'
+        strict_requirements: ~
+    form: ~
+    csrf_protection: ~
+    validation: { enable_annotations: true }
+    #serializer: { enable_annotations: true }
+    default_locale: '%locale%'
+    trusted_hosts: ~
+    session:
+        # https://symfony.com/doc/current/reference/configuration/framework.html#handler-id
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+        storage_factory_id: session.storage.factory.native #https://weblog.yivoff.com/upgrading-from-symfony-5.2-to-5.3/
+    fragments: ~
+    http_method_override: true
+    assets: ~
+    php_errors:
+        log: true
+
+# Twig Configuration
+twig:
+    debug: '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+    exception_controller: null
+    globals:
+        csproVersion: "%cspro_version%"
+        
+# monolog configuration 
+monolog:
+    handlers:
+        db:
+            type: service
+            id: cspro_monolog_handler
+

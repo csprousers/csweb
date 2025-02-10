@@ -1,0 +1,340 @@
+{
+  "software": "CSPro", 
+  "editable": false,
+  "version": 7.7, 
+  "fileType": "dictionary", 
+  "name": "SIMPLECAPI_DICT", 
+  "labels": [ { "text": "simpleCAPI" } ], 
+  "security": {
+    "allowDataViewerModifications": false, 
+    "allowExport": true, 
+    "cachedPasswordMinutes": 0, 
+    "settings": "1a00824829263ff09ea2030c618cebd61066c99a3234a0b5e8281cefc8e91a48"
+  }, 
+  "recordType": {
+    "start": 1, 
+    "length": 1
+  }, 
+  "defaults": {
+    "decimalMark": true, 
+    "zeroFill": true
+  }, 
+  "relativePositions": true, 
+  "levels": [
+    {
+      "name": "SIMPLECAPI_QUEST", 
+      "labels": [ { "text": "simpleCAPI questionnaire" } ], 
+      "ids": {
+        "items": [
+          {
+            "name": "CLUSTER", 
+            "labels": [ { "text": "Cluster" } ], 
+            "contentType": "numeric", 
+            "start": 2, 
+            "length": 3, 
+            "zeroFill": true
+          }, 
+          {
+            "name": "HHNO", 
+            "labels": [ { "text": "Household Number" } ], 
+            "contentType": "numeric", 
+            "start": 5, 
+            "length": 3, 
+            "zeroFill": true
+          }
+        ]
+      }, 
+      "records": [
+        {
+          "name": "POPULATION_REC", 
+          "labels": [ { "text": "Population Record" } ], 
+          "recordType": "1", 
+          "occurrences": {
+            "required": true, 
+            "maximum": 10
+          }, 
+          "items": [
+            {
+              "name": "P1", 
+              "labels": [ { "text": "P1. Name" } ], 
+              "contentType": "alpha", 
+              "length": 30
+            }, 
+            {
+              "name": "P2", 
+              "labels": [ { "text": "P2. Relationship" } ], 
+              "contentType": "numeric", 
+              "length": 1, 
+              "zeroFill": true, 
+              "valueSets": [
+                {
+                  "name": "P2_VS1", 
+                  "labels": [ { "text": "P2. Relationship" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "Head" } ], 
+                      "pairs": [ { "value": "1" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Spouse" } ], 
+                      "pairs": [ { "value": "2" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Child" } ], 
+                      "pairs": [ { "value": "3" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Parent" } ], 
+                      "pairs": [ { "value": "4" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Other relative" } ], 
+                      "pairs": [ { "value": "5" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Non-relative" } ], 
+                      "pairs": [ { "value": "6" } ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "name": "P3", 
+              "labels": [ { "text": "P3. Sex" } ], 
+              "contentType": "numeric", 
+              "length": 1, 
+              "zeroFill": true, 
+              "valueSets": [
+                {
+                  "name": "P3_VS1", 
+                  "labels": [ { "text": "P3. Sex" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "Male" } ], 
+                      "pairs": [ { "value": "1" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Female" } ], 
+                      "pairs": [ { "value": "2" } ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "name": "P4", 
+              "labels": [ { "text": "P4. Age" } ], 
+              "contentType": "numeric", 
+              "length": 2, 
+              "zeroFill": true, 
+              "valueSets": [
+                {
+                  "name": "AGE_ELSE_VS", 
+                  "labels": [ { "text": "P4. Age" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "0 - 9" } ], 
+                      "pairs": [ { "range": [ "0", "9" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "10 - 19" } ], 
+                      "pairs": [ { "range": [ "10", "19" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "20 - 29" } ], 
+                      "pairs": [ { "range": [ "20", "29" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "30 - 39" } ], 
+                      "pairs": [ { "range": [ "30", "39" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "40 - 49" } ], 
+                      "pairs": [ { "range": [ "40", "49" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "50 - 59" } ], 
+                      "pairs": [ { "range": [ "50", "59" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "60 - 69" } ], 
+                      "pairs": [ { "range": [ "60", "69" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "70 - 79" } ], 
+                      "pairs": [ { "range": [ "70", "79" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "80 - 89" } ], 
+                      "pairs": [ { "range": [ "80", "89" ] } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "90 - 99" } ], 
+                      "pairs": [ { "range": [ "90", "99" ] } ]
+                    }
+                  ]
+                }, 
+                {
+                  "name": "AGE_HEAD_VS", 
+                  "labels": [ { "text": "Head's Age" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "18-99" } ], 
+                      "pairs": [ { "range": [ "18", "99" ] } ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "name": "P5", 
+              "labels": [ { "text": "P5. Line Number of Mother" } ], 
+              "contentType": "numeric", 
+              "length": 2, 
+              "zeroFill": true
+            }
+          ]
+        }, 
+        {
+          "name": "HOUSING_REC", 
+          "labels": [ { "text": "Housing Record" } ], 
+          "recordType": "2", 
+          "occurrences": {
+            "required": true, 
+            "maximum": 1
+          }, 
+          "items": [
+            {
+              "name": "H3", 
+              "labels": [ { "text": "H3. Heating Source" } ], 
+              "contentType": "numeric", 
+              "length": 1, 
+              "zeroFill": true, 
+              "valueSets": [
+                {
+                  "name": "H3_VS1", 
+                  "labels": [ { "text": "H3. Heating Source" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "Individual heating system" } ], 
+                      "pairs": [ { "value": "1" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Central heating" } ], 
+                      "pairs": [ { "value": "2" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Gas" } ], 
+                      "pairs": [ { "value": "3" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Electricity" } ], 
+                      "pairs": [ { "value": "4" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Wood" } ], 
+                      "pairs": [ { "value": "5" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Animal dung" } ], 
+                      "pairs": [ { "value": "6" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Other" } ], 
+                      "pairs": [ { "value": "7" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "No heating" } ], 
+                      "pairs": [ { "value": "8" } ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "name": "H4", 
+              "labels": [ { "text": "H4. Water Source" } ], 
+              "contentType": "numeric", 
+              "length": 1, 
+              "zeroFill": true, 
+              "valueSets": [
+                {
+                  "name": "H4_VS1", 
+                  "labels": [ { "text": "H4. Water Source" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "Central water supply in dwelling unit" } ], 
+                      "pairs": [ { "value": "1" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Central water supply in building, not in dwelling unit" } ], 
+                      "pairs": [ { "value": "2" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Central water supply in the yard" } ], 
+                      "pairs": [ { "value": "3" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Carried/bought water" } ], 
+                      "pairs": [ { "value": "4" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Individual net for water collection" } ], 
+                      "pairs": [ { "value": "5" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Rivers/springs" } ], 
+                      "pairs": [ { "value": "6" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Well" } ], 
+                      "pairs": [ { "value": "7" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Other" } ], 
+                      "pairs": [ { "value": "8" } ]
+                    }
+                  ]
+                }
+              ]
+            }, 
+            {
+              "name": "DATE_OF_SURVEY", 
+              "labels": [ { "text": "Date of Survey" } ], 
+              "contentType": "numeric", 
+              "length": 8, 
+              "zeroFill": true
+            }, 
+            {
+              "name": "CHECKBOX", 
+              "labels": [ { "text": "Checkbox" } ], 
+              "contentType": "alpha", 
+              "length": 3, 
+              "valueSets": [
+                {
+                  "name": "CHECKBOX_VS1", 
+                  "labels": [ { "text": "Checkbox" } ], 
+                  "values": [
+                    {
+                      "labels": [ { "text": "Milk" } ], 
+                      "pairs": [ { "value": "1" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Fish" } ], 
+                      "pairs": [ { "value": "2" } ]
+                    }, 
+                    {
+                      "labels": [ { "text": "Chapati" } ], 
+                      "pairs": [ { "value": "3" } ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+#mapid{
+    min-height: inherit;
+    z-index: 0;
+}
+
+.marker-cluster-small {
+     background-color: rgba(181, 226, 140, 0.6);
+}
+.marker-cluster-small div {
+    background-color: rgba(110, 204, 57, 0.6);
+}
+
+.marker-cluster-medium {
+    background-color: rgba(241, 211, 87, 0.6);
+}
+.marker-cluster-medium div {
+    background-color: rgba(240, 194, 12, 0.6);
+}
+
+.marker-cluster-large {
+    background-color: rgba(253, 156, 115, 0.6);
+}
+.marker-cluster-large div {
+    background-color: rgba(241, 128, 23, 0.6);
+}
+
+
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+}
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+     margin-top: 5px;
+
+    text-align: center;
+    border-radius: 15px;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+.marker-cluster span {
+    line-height: 30px;
+}
+
+.popup-table {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 2px;
+}
+.data-table {
+    border: 1px solid #92a8d1;
+    border-collapse: collapse;
+    padding: 5px;
+}
+.data-table-head tr {
+    color: #034f84;
+    font-weight: bold;
+    vertical-align: bottom;
+    background-color: #f7f9fB;
+ }
+.data-table-body tr:nth-child(odd) {background-color: #edf1f7;}
+.data-table-body tr:nth-child(even) {background-color: #f7f9fB;}
+.data-table td:nth-child(1) {
+    color: #034f84;
+    font-weight: bold;
+    vertical-align: bottom;
+}
+.data-table-name {
+    color: #034f84;
+    font-size: 10pt;
+    font-weight: bolder;
+    margin-bottom: 5px;
+}
+
+#page-wrapper {
+    position: relative;
+}
+
+#upper-container {
+    position: absolute;
+    width: 75%;
+    height: 10%;
+    min-height: 90px;
+    /* background-color: red; */
+    top: 0;
+    left: 12.5%;
+}
+
+#filter-dropdowns {
+    position: absolute;
+    left: 30px;
+    /* top: 50%;
+    transform: translateY(-50%); */
+    top: 75px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    z-index: 1;
+}
+
+#filter-dropdowns select{
+    margin-top: 5px;
+    margin-bottom: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}

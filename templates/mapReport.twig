@@ -1,0 +1,625 @@
+{% extends "base.twig" %}
+
+{% block resources %}
+
+    <link href={{asset('dist/css/CaseView.css')}} rel="stylesheet">
+    <link href={{asset('dist/css/mapReport.css')}} rel="stylesheet">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
+    <!-- Esri Leaflet and Esri Leaflet Vector -->
+    <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script>
+    <script src="https://unpkg.com/esri-leaflet-vector@3/dist/esri-leaflet-vector.js"></script>
+
+{% endblock %}
+{# resources #}
+{% block nav %}
+    {% if is_granted('ROLE_REPORTS_ALL') == true %}
+        <li id="sync-report-nav-item" class="nav-item">
+            <a class="nav-link collapsed" href="{{ path('sync-report') }}" 
+               data-toggle="collapse" onclick= {window.location.href="{{ path('sync-report') }}";}>
+                <i class="fas fa-fw fa-table"></i>
+                <span>Sync Report</span>
+            </a>
+        </li>
+          <li id="map-report-nav-item" class="nav-item active">
+            <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapseMapReport"
+               aria-expanded="true" aria-controls="collapseMapReport">
+                <i class="fas fa-fw fa-table"></i>
+                <span>Map Report</span>
+            </a>
+             <div id="collapseMapReport" class="collapse show" aria-labelledby="headingTwo" data-parent="#side-menu">
+                <div class="bg-white collapse-inner rounded" id="map-report-dictionaries">
+                </div>
+            </div>
+        </li>
+    {% endif %}
+{% endblock %}
+{# nav #}
+{% block modal %}
+    <div id="pointInfoModal" class="modal fade" role="dialog" aria-labelledby="pointInfoModalLabel">
+        <div class="modal-dialog modal-lg" style = "width: 80%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="pointInfoModalLabel">Case</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body" id="pointInfoModalBody" style="overflow-x: scroll;">
+                </div>
+                <!-- .modal-body -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- #pointInfoModal -->
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/map_report.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+       <!--  <div class="col-12" id="mapid" style="position: relative;  border: 1px solid black;  border-radius: 8px;  min-height: 621px; width: 100%;"></div> -->
+        <div class="col-12" id="mapid" style="min-height: 621px;"></div>
+    </div>
+    <div class="row" id="upper-container">
+        <div id="alert" class="alert-placeholder-cspro alert-margin-cspro"></div>
+    </div>
+    <div class="row" id="filter-dropdowns">
+        <select class="form-control" id="filter-dropdown-primary" style="display: none;"></select>
+        <select class="form-control" id="filter-dropdown-secondary" disabled style="display: none;"></select>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+
+    <!-- Bootstrap Validator -->
+    <script src={{asset('dist/js/validator.min.js')}}></script>
+
+    <!-- Super cluster plugin -->
+    <script src="https://unpkg.com/supercluster@7.1.2/dist/supercluster.min.js"></script>
+    {# <script src="https://unpkg.com/supercluster@7.1.2/dist/supercluster.js"></script> #}
+    <!-- Page-Level Scripts -->
+
+    <script>
+                                   "use strict";
+
+                                   var map =
+                                           {
+                                               mymap: L.map('mapid', {
+                                               }).fitWorld(),
+                                               index: undefined,
+                                               clusterLayer: undefined,
+                                               tileLayer: undefined,
+                                               layerControl: undefined,
+                                               initMapReport: function () {
+                                                   var selectedDictionary = ui.getSelectedDictionary();
+
+                                                   var params = new URLSearchParams();
+                                                   params.append('dictionary', selectedDictionary.dictionary_name);
+                                                   //populate the dropdowns with the options
+                                                   $.ajax({
+                                                       type: "GET",
+                                                       url: `{{ path('map-report') }}/dictionary/ids`,
+                                                       data: params.toString()
+                                                   }).done(buildPrimaryFilterDropdown);
+
+
+                                                   if (map.tileLayer) {
+                                                       map.tileLayer.remove();
+                                                   }
+                                                   if (map.layerControl) {
+                                                       map.layerControl.remove();
+                                                   }
+                                                   var mapInfo = selectedDictionary.dataSetting.mapInfo;
+                                                   map.clusterLayer.clearLayers();
+
+                                                   if (mapInfo.service.name === 'ESRI') {
+                                                       var normalLayer = L.esri.basemapLayer('Streets');
+                                                       const basemapLayers = {
+                                                           "Normal": normalLayer,
+                                                           "Hybrid": L.esri.basemapLayer('NationalGeographic'),
+                                                           "Satellite": L.esri.basemapLayer('Imagery'),
+                                                           "Terrain": L.esri.basemapLayer('Topographic')
+                                                       }
+                                                       map.layerControl = L.control.layers(basemapLayers).addTo(map.mymap);
+                                                       normalLayer.addTo(map.mymap);
+                                                       map.tileLayer = normalLayer;
+                                                   } else if (mapInfo.service.name === 'Mapbox') {
+                                                       var options = mapInfo.service.options;
+                                                       options.attribution = 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
+                                                       options.id = "mapbox/streets-v11"
+                                                       var normalLayer = L.tileLayer(mapInfo.service.apiUrl, options);
+                                                       options.id = "mapbox/satellite-streets-v11"
+                                                       var hybridLayer = L.tileLayer(mapInfo.service.apiUrl, options);
+                                                       options.id = "mapbox/satellite-v9"
+                                                       var satelliteLayer = L.tileLayer(mapInfo.service.apiUrl, options);
+                                                       options.id = "mapbox/outdoors-v11"
+                                                       var terrainLayer = L.tileLayer(mapInfo.service.apiUrl, options);
+                                                       const basemapLayers = {
+                                                           "Normal": normalLayer,
+                                                           "Hybrid": hybridLayer,
+                                                           "Satellite": satelliteLayer,
+                                                           "Terrain": terrainLayer
+                                                       }
+                                                       map.layerControl = L.control.layers(basemapLayers).addTo(map.mymap);
+                                                       normalLayer.addTo(map.mymap);
+                                                       map.tileLayer = normalLayer;
+                                                   } else {
+
+                                                       var bounds = mapInfo.service.bounds;
+                                                       var mapBounds = new L.LatLngBounds(
+                                                               new L.LatLng(bounds[1], bounds[0]),
+                                                               new L.LatLng(bounds[3], bounds[2]));
+                                                       var mapMinZoom = mapInfo.service.options.minZoom;
+                                                       var mapMaxZoom = mapInfo.service.options.maxZoom;
+
+
+                                                       map.tileLayer = L.tileLayer(mapInfo.service.apiUrl, {
+                                                           minZoom: mapMinZoom, maxZoom: mapMaxZoom,
+                                                           bounds: mapBounds,
+                                                           attribution: 'undefined'
+                                                       }).addTo(map.mymap);
+
+                                                       map.mymap.setView(mapBounds.getCenter(), mapMinZoom);
+                                                   }
+
+
+                                                   map.index = new Supercluster({
+                                                       radius: 40,
+                                                       maxZoom: 16
+                                                   });
+
+                                                   $("#filter-dropdown-primary").hide();
+                                                   $("#filter-dropdown-secondary").hide();
+                                                   return $.ajax({
+                                                       type: "GET",
+                                                       url: "{{ path('map_report_points') }}",
+                                                       dataSrc: "",
+                                                       data: {
+                                                           dictionary: selectedDictionary.dictionary_name
+                                                       },
+                                                       fitWorld: mapInfo.service.name === 'File' ? false : true,
+                                                   }).done((map.handleResponse)).then(function () {
+                                                       if (this.fitWorld) {
+                                                           map.mymap.fitWorld();
+                                                       }
+                                                   });  //fitworld does not work for some mbtiles changed it to be used only when it is not mbtile
+                                               },
+                                               handleResponse: function (msg) {
+                                                   try {
+                                                       var msgJson = JSON.parse(msg);
+                                                       var geoJson = [];
+
+                                                       if (msgJson['totalMapPoints']) {
+                                                           ui.showAlert(`The number of points (${msgJson['totalMapPoints']}) exceeds the configured maximum of {{maxMapPoints}} , use the dropdowns to filter the points`, 'alert alert-info');
+                                                           setTimeout(ui.clearAlert, 4000);
+                                                       } else {
+                                                           msgJson.forEach((point) => {
+                                                               //addMarker(point['latitude'], point['longitude'], point['description']);
+                                                               geoJson.push({
+                                                                   "type": "Feature",
+                                                                   "geometry": {
+                                                                       "type": "Point",
+                                                                       "coordinates": [parseFloat(point['longitude']), parseFloat(point['latitude'])]
+                                                                   },
+                                                                   "properties": {
+                                                                       "guid": point["guid"]
+                                                                   }
+                                                               });
+                                                           });
+                                                           map.index.load(geoJson);
+                                                           //mymap.on('zoom', update);
+                                                           map.mymap.on('moveend', map.update);
+                                                           map.mymap.on('zoomend', () => {
+                                                               map.clusterLayer.eachLayer((layer) => {
+                                                                   if (!(layer.isPopupOpen && layer.isPopupOpen() && layer._csproGuid)) {
+                                                                       layer.remove();
+                                                                   }
+                                                               });
+                                                           });
+                                                           //mymap.on('move', update);
+                                                           //console.log(geoJson);
+                                                           //console.log(map.index);
+                                                           map.update();
+                                                       }
+                                                   } catch (e) {
+                                                       console.log("Error when loading map points.");
+                                                   }
+                                               },
+                                               update: function (e) {
+                                                   //Workaround on firefox , basically the computed size of the map isn't accurate in the beginning
+                                                   //Without this code, markers disappear off the bottom too early and tiles won't be loaded at the bottom, either.
+                                                   //It's fixed whenever the window is resized, though. 
+                                                   //it's only on firefox, and it seems wasteful to run every update, so I've commented it out for now.
+                                                   //var mapDiv = document.getElementById("mapid");
+                                                   //var mapSize = mymap.getSize();
+                                                   // if(mapSize.x != mapDiv.offsetWidth || mapSize.y != mapDiv.offsetHeight)
+                                                   //{
+                                                   //    mymap._size = {x: mapDiv.offsetWidth, y: mapDiv.offsetHeight};
+                                                   //  mymap._sizeChanged = true;
+                                                   //}
+                                                   const bounds = map.mymap.getBounds();
+                                                   var clusters = map.index.getClusters([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()], map.mymap.getZoom());
+                                                   var openPopupGuid;
+                                                   map.clusterLayer.eachLayer((layer) => {
+                                                       if (layer.isPopupOpen && layer.isPopupOpen() && layer._csproGuid) {
+                                                           openPopupGuid = layer._csproGuid;
+                                                       } else if (bounds.contains(layer.getLatLng())) {
+                                                           layer.remove();
+                                                       }
+                                                   });
+                                                   clusters.forEach((cluster) => {
+                                                       //var marker = createClusterIcon(cluster, [cluster.geometry.coordinates[1], cluster.geometry.coordinates[0]]).addTo(clusterLayer);
+                                                       if (!(openPopupGuid && cluster.properties.guid == openPopupGuid)) {
+                                                           //marker.openPopup();
+                                                           createClusterIcon(cluster, [cluster.geometry.coordinates[1], cluster.geometry.coordinates[0]]).addTo(map.clusterLayer);
+                                                       }
+                                                   });
+                                               },
+                                               handleClusterClick: function (e, feature) {
+                                                   var expansionZoom = map.index.getClusterExpansionZoom(feature.properties.cluster_id);
+                                                   map.mymap.flyTo(e.latlng, expansionZoom);
+                                               }
+                                           };
+                                   $(document).ready(function () {
+                                       chain.updateMapReportAfterPageReload();
+                                       // Spinner functionality
+                                       var $body = $("body");
+                                       $(document).ajaxStart(function (event, request, settings) {
+                                           $body.addClass("loading");
+                                       });
+                                       $(document).ajaxComplete(function (event, request, settings) {
+                                           $body.removeClass("loading");
+                                       });
+
+                                       map.clusterLayer = L.layerGroup().addTo(map.mymap);
+                                   });
+
+                                   var chain =
+                                           {
+                                               updateMapReportAfterPageReload: function () {
+                                                   // Chain Ajax calls ( getDictionaries, initMapReport)
+                                                   $("body").addClass("loading");
+                                                   ui.getDictionaries().then(function () {
+                                                       //do nothing
+                                                   }, function () {
+                                                       // Fail getDictionaries
+                                                   }).then(function () {
+                                                       $("body").removeClass("loading");
+                                                       map.initMapReport();
+                                                   }, function () {
+                                                       // Fail getAreaNamesColumnCount + getDictionaryIds
+                                                       $("body").removeClass("loading");
+                                                   });
+                                               },
+
+                                               updateMapReportAfterChangeDictionaries: function () {
+                                                   // Chain Ajax calls (initSyncReport)
+                                                   $("body").addClass("loading");
+                                                   map.initMapReport().then(function () {
+                                                       //done initMapReport
+                                                       $("body").removeClass("loading");
+                                                   }, function () {
+                                                       // Fail initMapReport
+                                                       $("body").removeClass("loading");
+                                                   });
+                                               }
+                                           }
+
+                                   var ui =
+                                           {
+                                               dictionaries: undefined,
+                                               showAlert: function (message, alertStyle) {
+                                                   $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+                                                   $("#alert").show();
+                                               },
+
+                                               clearAlert: function () {
+                                                   $("#alert").replaceWith("<div id='alert' class='alert-placeholder-cspro alert-margin-cspro'></div>");
+                                                   $("#alert").show();
+                                               },
+
+                                               buildDictionaryList: function (dictionaryObjects, containerId)
+                                               {
+                                                   this.dictionaries = dictionaryObjects;
+                                                   var container = document.getElementById(containerId);
+                                                   Array.prototype.forEach.call(dictionaryObjects, function (el, i) {
+                                                       var dictionaryMapReport = document.createElement("a");
+                                                       dictionaryMapReport.setAttribute("id", i);
+                                                       if (i === 0) {
+                                                           // Default first dictionary in list as selected
+                                                           dictionaryMapReport.setAttribute("class", "collapse-item active cspro-nav-item cspro-pointer");
+                                                       }
+                                                        else {
+                                                            dictionaryMapReport.setAttribute("class", "collapse-item cspro-nav-item cspro-pointer");
+                                                        }
+                                                        dictionaryMapReport.innerHTML = el.dictionary_label + ' (' + el.dictionary_name + ')';
+                                                        var callback = "ui.changeDictionary('" + dictionaryMapReport.id + "')";
+                                                        dictionaryMapReport.setAttribute("onclick", callback);
+                                                       container.appendChild(dictionaryMapReport);
+                                                   });
+                                               },
+                                               getDictionaries: function () {
+                                                   // Get all dictionary names and labels
+                                                   return $.ajax({
+                                                       type: "GET",
+                                                       url: "{{ url('map_report_dictionaries') }}",
+                                                       dataType: "json"
+                                                   }).then(function (response) {
+                                                       // Done getDictionaries
+                                                       if (response.type === "error") {
+                                                           // Only invalid responses will have a type
+                                                           ui.showAlert(response.message, "alert alert-danger");
+                                                           return $.Deferred().reject(response).promise();
+                                                           //}
+                                                       } else {
+                                                           if (response.length > 0) {
+                                                               ui.buildDictionaryList(response, "map-report-dictionaries");
+                                                               return response;
+                                                           } else {
+                                                               ui.showAlert("To view report add a data and map configuration and process the cases", "alert alert-danger");
+                                                               // Convert success to failure
+                                                               return $.Deferred().reject(response).promise();
+                                                           }
+                                                       }
+                                                   }, function (response) {
+                                                       // Fail getDictionaries
+                                                       if (response.status === 200) {
+                                                           // TODO: Hack to catch expired token
+                                                           window.location.href = "{{ path('logout') }}";
+                                                       } else {
+                                                           ui.showAlert(response.message, "alert alert-danger");
+                                                       }
+                                                   });
+                                               },
+                                               changeDictionary: function (selectedId) {
+                                                   // Loop through dictionaries in list and update which is selected
+                                                   var lis = document.getElementById("map-report-dictionaries").getElementsByTagName("a");
+                                                   for (var i = 0; i < lis.length; i++) {
+                                                       if (lis[i].className.includes("active")) {
+                                                           // Remove class selected from previously selected dictionary
+                                                           lis[i].setAttribute("class", "collapse-item cspro-nav-item cspro-pointer");
+                                                       }
+
+                                                       if (lis[i].id === selectedId) {
+                                                           // Add class selected to currently selected dictionary
+                                                           lis[i].setAttribute("class", "collapse-item active cspro-nav-item cspro-pointer");
+                                                       }
+                                                   }
+
+                                                   chain.updateMapReportAfterChangeDictionaries();
+                                               },
+
+                                               getSelectedDictionary: function ()
+                                               {
+                                                   // Return selected dictionary from list
+                                                   var lis = document.getElementById("map-report-dictionaries").getElementsByTagName("a");
+
+                                                   for (var i = 0; i < lis.length; i++) {
+                                                       if (lis[i].className.includes("active")) {
+                                                           return this.dictionaries[lis[i].id];
+                                                       }
+                                                   }
+                                               },
+                                           }
+
+
+                                   function createClusterIcon(feature, latlng) {
+                                       if (!feature.properties.cluster) {
+                                           var marker = L.marker(latlng);
+                                           if (Object.keys(feature.properties).length > 0)
+                                           {
+                                               //marker.bindPopup(createPopupTable(feature.properties));
+                                               marker.on('click', handleMarkerClick);
+                                               if (feature.properties.guid)
+                                               {
+                                                   marker._csproGuid = feature.properties.guid;
+                                               }
+                                           }
+                                           return marker;
+                                       }
+                                       const count = feature.properties.point_count;
+                                       const size =
+                                               count < 100 ? 'small' :
+                                               count < 1000 ? 'medium' : 'large';
+                                       const icon = L.divIcon({
+                                           html: `<div><span>${  feature.properties.point_count_abbreviated  }</span></div>`,
+                                           className: `marker-cluster marker-cluster-${  size}`,
+                                           iconSize: L.point(Math.min(count * 2, 40), Math.min(count * 2, 40))
+                                       });
+
+                                       return L.marker(latlng, {icon}).on('click', (e) => map.handleClusterClick(e, feature));
+                                   }
+
+                                   function handleMarkerClick(e) {
+                                       var selectedDictionary = ui.getSelectedDictionary().dictionary_name;
+                                       var guid = e.target._csproGuid;
+                                       $.ajax({
+                                           type: "GET",
+                                           url: `{{ path('map-report') }}/marker/${selectedDictionary}/cases/${guid}`,
+                                           dataSrc: ""
+                                       }).done((msg) => {
+                                           e.target.off('click');
+                                           try {
+                                               var props = JSON.parse(msg);
+                                               var latLng = e.target.getLatLng();
+                                               Object.assign(props, {'Latitude': latLng.lat, 'Longitude': latLng.lng});
+                                               e.target.bindPopup(createPopupTable({guid: guid, props: props}), {maxWidth: "auto"}).openPopup();
+                                           } catch (e) {
+                                               console.log("Error while handling marker click");
+                                           }
+                                       });
+                                   }
+
+                                   function createPopupTable(properties)
+                                   {
+                                       var dataDiv = document.createElement('div');
+                                       var dataEl = dataDiv.appendChild(document.createElement('table'));
+                                       //dataEl.setAttribute("class", "popup-table");
+                                       dataEl.setAttribute("class", "c2h_table");
+                                       var headRow = dataEl.appendChild(document.createElement("thead")).appendChild(document.createElement("tr"));
+                                       headRow.appendChild(document.createElement("td").appendChild(document.createTextNode("Name ")).parentElement).setAttribute("class", "c2h_table_header");
+                                       headRow.appendChild(document.createElement("td").appendChild(document.createTextNode("Value ")).parentElement).setAttribute("class", "c2h_table_header");
+                                       var tBody = dataEl.appendChild(document.createElement('tbody'));
+                                       var props = properties["props"];
+                                       var keys = Object.keys(props);
+                                       for (var key in keys) {
+                                           var value = props[keys[key]];
+                                           if (value === null)
+                                               value = "";
+                                           //dataHTML += '<tr> <td class = "popup-table" >' + key + '</td> <td class = "popup-table">' + value + '</td> </tr>';
+                                           var row = document.createElement('tr');
+                                           row.append(document.createElement('td').appendChild(document.createTextNode(keys[key])).parentElement, document.createElement('td').appendChild(document.createTextNode(value)).parentElement);
+                                           row.childNodes.forEach((child) => {
+                                               if (key % 2 == 0) {
+                                                   child.setAttribute("class", "c2h_table_r1");
+                                               } else {
+                                                   child.setAttribute("class", "c2h_table_r0");
+                                               }
+
+                                           });
+                                           tBody.appendChild(row)
+                                       }
+                                       var pointDataLink = dataDiv.appendChild(document.createElement('a'));
+                                       pointDataLink.setAttribute("href", "javascript:void(0);");
+                                       pointDataLink.setAttribute("onclick", `showData('${properties['guid']}');`);
+                                       pointDataLink.appendChild(document.createTextNode("View Case"));
+                                       return dataDiv;
+                                   }
+
+                                   //originally had these as the same function, but the behavior for primary/secondary dropdown is different
+                                   function buildPrimaryFilterDropdown(msg) {
+                                       try {
+                                           var msgJson = JSON.parse(msg);
+                                           var primarySelector = $("#filter-dropdown-primary");
+                                           var primaryCols = msgJson["firstLevel"]["values"];
+                                           var secondarySelector = $("#filter-dropdown-secondary");
+                                           secondarySelector.empty();
+                                           secondarySelector.append('<option value="" selected>Not Filled</option>');
+                                           secondarySelector.attr('disabled', '');
+                                           primarySelector.empty();
+                                          
+                                           let firstLevelChoices =  '<option selected value="" style="font-weight: bold;">' + msgJson["firstLevel"]["label"]+ '</option>';
+                                           primarySelector.append(firstLevelChoices);
+                                           primaryCols.forEach((col) => {
+                                               var colOption = document.createElement('option');
+                                               colOption.setAttribute('value', col.id);
+                                               colOption.appendChild(document.createTextNode(col.label));
+                                               primarySelector.append(colOption);
+                                           });
+                                           primarySelector.show();
+                                           secondarySelector.show();
+                                       } catch (e) {
+                                           console.log("Error populating dropdown filters.");
+                                       }
+                                   }
+
+                                   function buildSecondaryFilterDropdown(msg) {
+                                       try {
+                                           var msgJson = JSON.parse(msg);
+                                           var secondarySelector = $("#filter-dropdown-secondary");
+                                           var secondaryCols = msgJson["secondLevel"]["values"];
+                                           let secondLevelChoices =  '<option selected value="" style="font-weight: bold;">' + msgJson["secondLevel"]["label"]+ '</option>';
+                                           secondarySelector.empty();
+                                           secondarySelector.append(secondLevelChoices);
+                                           secondarySelector.removeAttr('disabled');
+                                           secondaryCols.forEach((col) => {
+                                               var colOption = document.createElement('option');
+                                               colOption.setAttribute('value', col.id);
+                                               colOption.appendChild(document.createTextNode(col.label));
+                                               secondarySelector.append(colOption);
+                                           });
+                                       } catch (e) {
+                                           console.log("Error populating  dropdown filters.");
+                                       }
+                                   }
+
+                                   $("#filter-dropdown-primary").on("input", handlePrimaryFilterInput);
+                                   $("#filter-dropdown-secondary").on("input", handleSecondaryFilterInput);
+
+                                   function handlePrimaryFilterInput(e) {
+                                       var primaryId = $("#filter-dropdown-primary").val();
+                                       var selectedDict = ui.getSelectedDictionary().dictionary_name;
+                                       var mapJsonParams = new URLSearchParams();
+                                       if (primaryId != "") {
+                                           mapJsonParams.append('ids[0]', primaryId);
+                                           $('#filter-dropdown-primary option:contains("Select Filter")').text("Reset Filter");
+                                       } else {
+                                           $('#filter-dropdown-primary option:contains("Reset Filter")').text("Select Filter");
+                                       }
+                                       mapJsonParams.append('dictionary', selectedDict);
+
+                                       $.ajax({
+                                           type: "GET",
+                                           url: "{{ path('map_report_points') }}",
+                                           dataSrc: "",
+                                           data: mapJsonParams.toString()
+                                       }).done((map.handleResponse));
+
+                                       var colParams = new URLSearchParams();
+                                       colParams.append('ids[0]', primaryId);
+                                       colParams.append('dictionary', selectedDict);
+                                       $.ajax({
+                                           type: "GET",
+                                           url: `{{ path('map-report') }}/dictionary/ids`,
+                                           data: colParams.toString()
+                                       }).done(buildSecondaryFilterDropdown);
+                                   }
+
+                                   function handleSecondaryFilterInput(e) {
+                                       var primaryId = $("#filter-dropdown-primary").val();
+                                       var secondaryId = $("#filter-dropdown-secondary").val();
+                                       var selectedDict = ui.getSelectedDictionary().dictionary_name;
+                                       var mapJsonParams = new URLSearchParams();
+                                       mapJsonParams.append('ids[0]', primaryId);
+
+                                       if (secondaryId != "") {
+                                           mapJsonParams.append('ids[1]', secondaryId);
+                                           $('#filter-dropdown-secondary option:contains("Select Filter")').text("Reset Filter");
+                                       } else {
+                                           $('#filter-dropdown-secondary option:contains("Reset Filter")').text("Select Filter");
+                                       }
+                                       mapJsonParams.append('dictionary', selectedDict);
+                                       $.ajax({
+                                           type: "GET",
+                                           url: "{{ path('map_report_points') }}",
+                                           dataSrc: "",
+                                           data: mapJsonParams.toString()
+                                       }).done((map.handleResponse));
+                                   }
+
+                                   function showData(guid) {
+                                       var selectedDictionary = ui.getSelectedDictionary().dictionary_name;
+                                       $.ajax({
+                                           type: "GET",
+                                           url: `{{ path('map-report') }}/${selectedDictionary}/cases/${guid}`,
+                                           dataSrc: ""
+                                       }).done((showModal));
+                                   }
+
+                                   function showModal(data)
+                                   {
+
+                                       var modalBody = document.getElementById("pointInfoModalBody");
+                                       modalBody.childNodes.forEach((child) => {
+                                           modalBody.removeChild(child);
+                                       });
+                                       modalBody.innerHTML = data;
+                                       $("#pointInfoModal").modal("show");
+                                   }
+    </script>
+
+{% endblock %}
+{# scripts #}

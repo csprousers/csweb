@@ -1,0 +1,6 @@
+controllers:
+    resource: ../../../src/AppBundle/Controller/api
+    type: annotation
+kernel:
+    resource: ../../api/ApiKernel.php
+    type: annotation

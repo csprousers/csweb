@@ -1,0 +1,1327 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Web API for synchronizing data and files from devices in the field to a web server.\n",
+    "version": "2.0.0",
+    "title": "CSPro Sync",
+    "contact": {
+      "name": "cspro@lists.census.gov"
+    },
+    "license": {
+      "name": "Public domain"
+    }
+  },
+  "host": "csweb.teleyah.com",
+  "basePath": "/api/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "produces": [
+    "application/json",
+    "text/plain",
+    "application/zip"
+  ],
+  "paths": {
+    "/dictionaries": {
+      "get": {
+        "tags": [
+          "dictionary"
+        ],
+        "summary": "List dictionaries",
+        "description": "List names of available data dictionaries on this server",
+        "operationId": "listDictionaries",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of dictionary names",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Dictionary"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "dictionary"
+        ],
+        "summary": "Add new dictionary",
+        "description": "Upload a new data dictionary to the server so that data \n  (cases) may be associated with it.\n",
+        "operationId": "addDictionary",
+        "consumes": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "dictionary",
+            "description": "CSPro data dictionary as plain text",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Not a valid CSPro data dictionary"
+          }
+        }
+      }
+    },
+    "/dictionaries/{dictName}": {
+      "get": {
+        "tags": [
+          "dictionary"
+        ],
+        "summary": "Get dictionary by name",
+        "description": "Download the dictionary named dictName",
+        "operationId": "getDictByName",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary to download",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dictionary as text",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "404": {
+            "description": "Dictionary not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "dictionary"
+        ],
+        "summary": "Delete dictionary",
+        "description": "Delete a dictionary on the server and all associated data",
+        "operationId": "deleteDictionary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary to delete",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Dictionary not found"
+          }
+        }
+      }
+    },
+    "/dictionaries/{dictName}/cases": {
+      "get": {
+        "tags": [
+          "case"
+        ],
+        "summary": "Get cases for dictionary",
+        "description": "Download cases for the dictionary named dictName",
+        "operationId": "getCasesForDict",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary to get cases from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-universe",
+            "description": "universe to limit cases returned",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-case-range-start-after",
+            "description": "only return cases whose guid is strictly greater (alphabetically) than this value. Used for paging results.",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-case-range-count",
+            "description": "limit number cases returned to this number of cases.",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-exclude-revisions",
+            "description": "exclude cases from following revisions from the result. Allows device to avoid downloading cases that it previously uploaded.",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csw-device",
+            "description": "id of device requesting cases",
+            "type": "string",
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "description": "etag from previous call. Only cases added/modified since this etag are returned. If server does not have this etag it will return status 412.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cases as JSON.",
+            "headers": {
+              "etag": {
+                "description": "server revision to be used in if-match header in subsequent requests to limit results to only new/modified cases",
+                "type": "string"
+              },
+              "x-csw-case-range-count": {
+                "description": "x/y where x is number cases returned in this response and y is total cases matching request criteria.",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/CaseList"
+            }
+          },
+          "206": {
+            "description": "Partial case list as JSON. Returned if x-csw-case-range-count is used and more cases remain on server.",
+            "headers": {
+              "etag": {
+                "description": "server revision to be used in if-match header in subsequent requests to limit results to only new/modified cases",
+                "type": "string"
+              },
+              "x-csw-case-range-count": {
+                "description": "x/y where x is number cases returned in this response and y is total cases matching request criteria.",
+                "type": "string"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/CaseList"
+            }
+          },
+          "404": {
+            "description": "Dictionary not found"
+          },
+          "412": {
+            "description": "Precondition failed. etag in if-match header does not match an etag on server."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "case"
+        ],
+        "summary": "Add or update new cases to dictionary",
+        "description": "Upload new cases to the dictionary named dictName",
+        "operationId": "addOrUpdateCase",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary to add case to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "case",
+            "description": "Cases to add/update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CaseList"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-csw-device",
+            "description": "id of device sending cases",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "description": "etag from previous call. If server does not have this etag it will return status 412.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "etag": {
+                "description": "server revision to be used in if-match header in subsequent requests",
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Not a valid case list"
+          },
+          "404": {
+            "description": "Dictionary not found"
+          },
+          "412": {
+            "description": "Precondition failed. etag in if-match header does not match an existing etag on server."
+          }
+        }
+      }
+    },
+    "/dictionaries/{dictName}/cases/{caseId}": {
+      "get": {
+        "tags": [
+          "case"
+        ],
+        "summary": "Get case by id",
+        "description": "Download case for the dictionary named dictName with id caseId",
+        "operationId": "getCaseById",
+        "produces": [
+          "application/json",
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary to get cases from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "caseId",
+            "description": "Id of case to download (GUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Case as JSON or plain text (CSPro data file) depending on value of accept header. Due to limitation of swagger it isn't possible to show both response types here",
+            "schema": {
+              "$ref": "#/definitions/Case"
+            }
+          },
+          "404": {
+            "description": "Dictionary  not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "case"
+        ],
+        "summary": "Update existing case",
+        "description": "Overwrite existing case for the dictionary named dictName with id caseId",
+        "operationId": "updateCase",
+        "consumes": [
+          "application/json",
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary containing case",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "caseId",
+            "description": "Id of case to update (GUID)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "case",
+            "description": "Case to update",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Case"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Not a valid case"
+          },
+          "404": {
+            "description": "Dictionary or case not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "case"
+        ],
+        "summary": "Delete existing case",
+        "description": "Delete existing case from the dictionary named dictName with id caseId",
+        "operationId": "deleteCase",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary containing case",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "caseId",
+            "description": "Id of case to delete (GUID)",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Dictionary or case not found"
+          }
+        }
+      }
+    },
+    "/dictionaries/{dictName}/syncs": {
+      "get": {
+        "tags": [
+          "case",
+          "sync"
+        ],
+        "summary": "Get sync history",
+        "description": "List synchronizations for the server",
+        "operationId": "GetSyncHistory",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "dictName",
+            "description": "Name of dictionary containing case",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "description": "Start date in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z)",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "description": "End date in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z)",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "deviceId",
+            "description": "Device Id",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "description": "maximum number of cases in response",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "description": "zero-based index of first case to return in response",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/SyncHistory"
+            }
+          },
+          "404": {
+            "description": "Dictionary or case not found"
+          }
+        }
+      }
+    },
+    "/files/{filePath}": {
+      "get": {
+        "tags": [
+          "file"
+        ],
+        "summary": "Get file",
+        "description": "Get contents of file matching path.",
+        "operationId": "GetFileInfo",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "filePath",
+            "description": "path of file to download for",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/FileInfo"
+            }
+          },
+          "403": {
+            "description": "Unable to read file"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      }
+    },
+    "/files/{filePath}/content": {
+      "get": {
+        "tags": [
+          "file"
+        ],
+        "summary": "Get file",
+        "description": "Get contents of file matching path.",
+        "operationId": "GetFileContent",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "filePath",
+            "description": "path of file to download",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "type": "string",
+            "description": "ETag value from previous response, 304 is returned if this matches current ETag"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "file"
+            },
+            "headers": {
+              "Content-MD5": {
+                "description": "Signature of file contents",
+                "type": "string"
+              },
+              "Content-Length": {
+                "description": "Size in bytes of downloaded file",
+                "type": "integer",
+                "format": "int64"
+              },
+              "ETag": {
+                "description": "Signature of file for caching",
+                "type": "string"
+              }
+            }
+          },
+          "304": {
+            "description": "file not modified since last time downloaded according to ETag"
+          },
+          "403": {
+            "description": "Unable to read file"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "file"
+        ],
+        "summary": "Upload file",
+        "description": "Put contents of file to server directory specified by filePath. Create directory filePath if it does not exist.",
+        "operationId": "PutFileContent",
+        "consumes": [
+          "application/octect-stream"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "filePath",
+            "description": "Full path to upload file to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "Content-MD5",
+            "required": true,
+            "description": "Signature of file contents",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. Response is metadata for uploaded file.",
+            "schema": {
+              "$ref": "#/definitions/FileInfo"
+            }
+          },
+          "403": {
+            "description": "Unable to write to filePath"
+          },
+          "500": {
+            "description": "Error writing file"
+          }
+        }
+      }
+    },
+    "/folders/{folderPath}": {
+      "get": {
+        "tags": [
+          "file",
+          "folder"
+        ],
+        "summary": "Get files in folder",
+        "description": "Get file info for files in the given folder",
+        "operationId": "GetFilesInFolder",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folderPath",
+            "description": "path of folder to list contents of",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/FileListing"
+            }
+          },
+          "404": {
+            "description": "Directory not found"
+          }
+        }
+      }
+    },
+    "/server": {
+      "get": {
+        "tags": [
+          "server"
+        ],
+        "summary": "Get server details",
+        "description": "Get information about server",
+        "operationId": "GetServerInfo",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/ServerInfo"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get list of users",
+        "operationId": "getUsers",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of users",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{username}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user by user name",
+        "description": "",
+        "operationId": "getUserByName",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "description": "The name that needs to be fetched.",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "400": {
+            "description": "Invalid username supplied"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Updated user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "updateUser",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "description": "name of user to update",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Updated user object",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid user supplied"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "deleteUser",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "username",
+            "description": "The name that needs to be deleted",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid username supplied"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/apps": {
+      "get": {
+        "tags": [
+          "app"
+        ],
+        "summary": "Get list of applications",
+        "operationId": "getApps",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of applications that can be downloaded from server",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ApplicationDeploymentSpecification"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/apps/{appname}": {
+      "get": {
+        "tags": [
+          "app"
+        ],
+        "summary": "Get app package",
+        "description": "Get application deployment package (csapb file) for named application",
+        "operationId": "getApp",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appname",
+            "description": "name of app to download",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "required": false,
+            "description": "Signature (MD5) of current application package specification on client. If same as signature of package on server 304 code is returned.",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-package-build-time",
+            "required": false,
+            "description": "Build date/time of application package on client in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z). If server package is more recent then 304 code is returned.",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "x-csw-package-files",
+            "required": false,
+            "description": "List of application package files and signatures from JSON package spec on client gzcompressed and base 64 encoded. Files in this list with same signature as those in package on server are not sent in application package that is returned.",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "file"
+            },
+            "headers": {
+              "Content-Length": {
+                "description": "Size in bytes of downloaded file",
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          },
+          "304": {
+            "description": "Client version of package same or newer than server version based on If-None-Match or x-csw-package-build-time header. No update needed."
+          },
+          "403": {
+            "description": "Unable to read file"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "app"
+        ],
+        "summary": "Upload app package",
+        "description": "Upload application package (csapb file) to server.",
+        "operationId": "updateApp",
+        "consumes": [
+          "application/octect-stream"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appname",
+            "description": "Name of app to upload",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success."
+          },
+          "500": {
+            "description": "Error writing file"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "app"
+        ],
+        "summary": "Delete app",
+        "operationId": "deleteApp",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appname",
+            "description": "The name of the app to be deleted",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "App not found"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AnyValue":{
+      "description": "Can be anything: string, number, array, object, etc. (except `null`)"
+    },
+    "Dictionary": {
+      "type": "object",
+      "description": "CSPro data dictionary",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "name of dictionary"
+        },
+        "label": {
+          "type": "string",
+          "description": "label of dictionary"
+        },
+        "caseCount": {
+          "type": "integer",
+          "description": "total number of cases in dictionary"
+        }
+      }
+    },
+    "ClockVector": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    },
+    "RecordList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of records for a case where each record is a string. Each record has the same format as in a CSPro text data file except that \" and \\ are escaped in order to be valid JSON."
+    },
+    "Field": {
+      "type": "object",
+      "description": "field on form",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "name of field"
+        },
+        "levelKey": {
+          "type": "string",
+          "description": "id-items of second/third level node if field is not at first level"
+        },
+        "recordOccurrence": {
+          "type": "integer",
+          "description": "record occurrence number of field (optional)"
+        },
+        "itemOccurrence": {
+          "type": "integer",
+          "description": "item occurrence number of field (optional)"
+        },
+        "subitemOccurrence": {
+          "type": "integer",
+          "description": "sub-item occurrence number of field (optional)"
+        }
+      }
+    },
+    "PartialSaveStatus": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "\"add\" or \"modify\""
+        },
+        "field": {
+          "$ref": "#/definitions/Field"
+        }
+      }
+    },
+    "Note": {
+      "type": "object",
+      "properties": {
+        "operatorId": {
+          "type": "string",
+          "description": "operator ID  for this note"
+        },
+        "content": {
+          "type": "string",
+          "description": "text of note"
+        },
+        "modifiedTime": {
+          "type": "string",
+          "description": "Modified time in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z)",
+          "format": "date-time"
+        },
+        "field": {
+          "$ref": "#/definitions/Field"
+        }
+      }
+    },
+    "NoteList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Note"
+      }
+    },
+    "Case": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "guid"
+        },
+        "caseids": {
+          "type": "string",
+          "description": "values of case identifier variables concatenated"
+        },
+        "label": {
+          "type": "string",
+          "description": "optional label to display for case in case listing"
+        },
+        "data": {
+          "$ref": "#/definitions/RecordList",
+          "description": "Collected data for case in CSPro text format. Replaced by level-1 as of CSPro 7.5."
+        },
+        "level-1": {
+          "type": "string",
+          "description": "Collected data for case in JSON format, encoded as string"
+        },
+        "notes": {
+          "$ref": "#/definitions/NoteList"
+        },
+        "deleted": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "partialSave": {
+          "$ref": "#/definitions/PartialSaveStatus"
+        },
+        "clock": {
+          "$ref": "#/definitions/ClockVector"
+        }
+      },
+      "required": [
+        "id",
+        "caseids",
+        "clock"
+      ],
+      "additionalProperties": false
+    },
+    "CaseList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Case"
+      }
+    },
+    "FileInfo": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "either \"file\" or \"directory\""
+        },
+        "name": {
+          "type": "string",
+          "description": "name of file or directory without path"
+        },
+        "directory": {
+          "type": "string",
+          "description": "absolute of path directory containing file (for files) or absolute path of parent directory (for directories)"
+        },
+        "md5": {
+          "type": "string",
+          "description": "md5 signature of file (file only)"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "size of file in bytes (file only)"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "date/time of last modification of file in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z)"
+        }
+      }
+    },
+    "FileListing": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FileInfo"
+      }
+    },
+    "ServerInfo": {
+      "type": "object",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "description": "unique device id of server"
+        },
+        "apiVersion": {
+          "type": "number",
+          "format": "float",
+          "description": "version number of API used by the server"
+        }
+      }
+    },
+    "SyncHistoryEntry": {
+      "type": "object",
+      "description": "an event in the sync history log",
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "description": "device id of client synced with"
+        },
+        "dictionary": {
+          "type": "string",
+          "description": "name of dictionary synced"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "put",
+            "get",
+            "both"
+          ],
+          "description": "direction of sync"
+        },
+        "universe": {
+          "type": "string",
+          "description": "universe used for the sync"
+        },
+        "dateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "date/time of synchronization in RFC3339 format ( e.g. 1985-04-12T23:20:50.52Z)"
+        }
+      }
+    },
+    "SyncHistory": {
+      "description": "List of sync history entries",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SyncHistoryEntry"
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "username": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "username",
+        "firstName",
+        "lastName",
+        "password"
+      ],
+      "additionalProperties": false
+    },
+    "ApplicationDeploymentFiles": {
+      "description": "List of files in application deployment package",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "onlyOnFirstInstall": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "ApplicationDeploymentSpecification": {
+      "type": "object",
+      "properties": {
+        "fileType": {
+          "type": "string"
+        },
+        "version": {
+          "$ref": "#/definitions/AnyValue"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "buildTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "files": {
+          "$ref": "#/definitions/ApplicationDeploymentFiles"
+        },
+        "dictionaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "uploadForSync": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "deployment": {
+          "type": "object",
+          "properties": {
+            "Type": {
+              "type": "string",
+              "enum": [
+                "Dropbox",
+                "FTP",
+                "CSWeb",
+                "LocalFile"
+              ]
+            },
+            "url": {
+              "type": "string"
+            },
+            "localPath": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

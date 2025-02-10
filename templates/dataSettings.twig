@@ -1,0 +1,1614 @@
+{% extends "base.twig" %}
+{% block resources %}
+    <link href={{asset('dist/css/dropdownCheckboxes.min.css')}} rel="stylesheet">
+    <style>
+        .hidden {
+            display: none;
+        }
+        .custom-error {
+            color: #a94442;
+        }
+        .custom-success {
+            color: #3c763d;
+        }
+        #upload-map-button, #edit-upload-map-button, #edit-additional-config-button {
+            float: right;
+        }
+        #metadata-dropdown-button, #edit-metadata-dropdown-button{
+            max-width: 100%;
+            width: 100%;
+            text-align: left;
+        }
+        #metadata-dropdown-button .caret, #edit-metadata-dropdown-button .caret {
+            float:right;
+            margin-top: 7px;
+        }
+        #metadata-dropdown, #edit-metadata-dropdown {
+            max-height: 250px;
+            overflow-y: scroll;
+            width: 100%;
+        }
+        #metadata-dropdown label, #edit-metadata-dropdown label {
+            margin-left: 5px;
+        }
+        .metadata-check {
+            margin-right: 5px !important;
+        }
+    </style>
+{% endblock %}
+{% block navSettings %}
+    {% if is_granted('ROLE_SETTINGS_ALL') == true %}
+        <li id="settings-nav-item" class="nav-item active">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSettings"
+               aria-expanded="true" aria-controls="collapseSettings">
+                <i class="fas fa-fw fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <div id="collapseSettings" class="collapse show" aria-labelledby="headingTwo" data-parent="#side-menu">
+                <div class="bg-white collapse-inner rounded">
+                    <a class="collapse-item active" href="{{ path('dataSettings') }}">
+                        <i class="fas fa-fw fa-user"></i>
+                        Data</a>
+                </div>
+            </div>
+        </li>
+    {% endif %}
+{% endblock %}
+{% block modal %}
+    <!-- Modal Content -->
+    <div id="add-config-modal" class="modal fade" role="dialog" aria-labelledby="add-config-modal-label">
+        <div class="modal-dialog modal-lg" >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="add-config-modal-label">Add Configuration</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="add-config-form" role="form">
+                        <!-- form-group row -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-4 control-label" for="config">Source data</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="config" name="configuration">
+                                    {% for dataSetting in dataSettings %}
+                                        {% if dataSetting.targetSchemaName == "" %}
+                                            <option dictName = {{dataSetting.name}} title="{{ dataSetting.label}}" value={{ dataSetting.id}}>{{ dataSetting.name}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-4 control-label" for="target-db-name">Database name</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="targetSchemaName" id="target-db-name" placeholder="Database name different from source database"
+                                       data-required-error="Target database name is required" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-4 control-label" for="host-name">Hostname</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="targetHostName" id="host-name" placeholder="Hostname of database server (e.g. localhost)."
+                                       data-required-error="Hostname is required" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-4 control-label" for="db-user-name">Database username</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="dbUserName" id="db-user-name" placeholder="Name of database user. Must already exist."
+                                       data-required-error="User name is required" required>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div class="form-group row has-feedback">
+                            <label class="col-sm-4 control-label" for="db-password">Database password</label>
+                            <div class="col-sm-8">
+                                <input type="password" class="form-control" name="dbPassword" id="db-password" placeholder="Database user password.">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div class = "form-group row has-feedback">
+                             <div class="form-check ml-2">
+                                <label class="form-check-label">
+                                    <input class="form-check-input" type="checkbox" id="additional-config-enable"> Use Additional Configuration Options
+                                </label>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <!-- <div class = "input-group col-sm-12">
+                                <div class="input-group-prepend">
+                                    <input type="checkbox" class="form-check-input" id="additional-config-enable">
+                                </div>
+                                <label class="form-check-label" for="additional-config-enable">Use Additional Configuration Options</label>
+                                <div class="help-block with-errors"></div>
+                            </div> -->
+                        </div>
+                        <div id = "additional-config-options">
+                            <!-- form-group row -->
+                            <div class = "form-group row">
+                                <label class="col-sm-4 control-label" for="additional-config-browse">Add File</label>
+                                <div class="col-sm-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="additional-config-browse-name" readonly>
+                                         <label class='input-group-append'>
+                                            <span class = "btn btn-primary">
+                                                Browse&hellip; <input type="file" class="form-control-file" accept = '.json' id="additional-config-browse" style="display: none;">
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div class = "form-group row has-feedback">
+                            <div class="form-check ml-2">
+                                <input type="checkbox" class="form-check-input" id="map-enable">
+                                <label class="form-check-label" for="map-enable">Enable Map Report </label>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                        <!-- form-group row -->
+                        <div id = "map-options">
+                            <div class = "form-group row">
+                                <label class = "col-sm-4 control-label" for="basemap-select">Tile provider</label>
+                                <div class = "col-sm-8">
+                                    <select class="form-control" id="basemap-select">
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="basemap-key">Access token</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="basemap-key" placeholder="Public Scope Authentication Key for Basemap"
+                                           data-required-error="Access token must be provided">
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group> -->
+                            <div id = "file-selectors">
+                                <div class = "form-group row">
+                                    <label class="col-sm-4 control-label" for="basemap-file-select">Use existing file</label>
+                                    <div class="col-sm-8">
+                                        <select class="form-control" id="basemap-file-select"></select>
+                                    </div>
+                                </div>
+                                <!-- form-group row -->
+                                <div class = "form-group row">
+                                    <label class="col-sm-4 control-label" for="basemap-file-upload">Upload File</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="basemap-file-upload-name" readonly>
+                                            <label class='input-group-append'>
+                                                <span class = "btn btn-primary">
+                                                    Browse&hellip; <input type="file" class="form-control-file" accept = '.mbtiles' id="basemap-file-upload" style="display: none;">
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type = "button" class = "btn btn-primary" id = "upload-map-button">Upload</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row">
+                                <label class="col-sm-4 control-label" for="latitude-select">Latitude</label>
+                                <div class = "col-sm-8">
+                                    <select class="form-control" id="latitude-select"></select>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row">
+                                <label class="col-sm-4 control-label" for="longitude-select">Longitude</label>
+                                <div class = "col-sm-8">
+                                    <select class="form-control" id="longitude-select"></select>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row">
+                                <label class="col-sm-4 control-label">Display items on Popup: (Max 5)</label>
+                                <div class="col-sm-8 custom-control custom-checkbox" id = "metadata-select">
+                                    <div class = 'dropdown cq-dropdown' data-name='metadata'>
+                                        <button id="metadata-dropdown-button" class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Select Metadata Items
+                                            <span class = "caret"></span>
+                                        </button>
+                                        <ul id = "metadata-dropdown" class = "dropdown-menu" aria-labelledby="metadata-dropdown-button"></ul>
+                                    </div>
+                                </div>
+                                <!-- metadata-select -->
+                            </div>
+                            <!-- form-group row -->
+                        </div>
+                        <!-- map-options -->
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" id="add-button">Add</button>
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                        </div>  
+                        <!-- form-group row -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!-- Modal Content -->
+    <div id="edit-config-modal" class="modal fade" role="dialog" aria-labelledby="edit-config-modal-label">
+        <div class="modal-dialog modal-lg" >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="edit-config-modal-label">Edit Configuration</h4>
+                    <button type="button" class="close" id="edit-dismiss-button" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close" id="view-additional-config-dismiss-button">&times;</button>
+
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <form class="form-horizontal" id="edit-config-form" role="form">
+                        <div id="view-additional-config-json">
+                            <pre id="additional-config-json-text-holder">
+                            </pre>
+                        </div>
+                        <div id="edit-modal-input">
+                            <!-- form-group row -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="config">Source data</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="edit-source-data" id="edit-source-data" placeholder="sourceData" disabled>
+                                    <input type="hidden" class="form-control" name="edit-configId" id="edit-configId" placeholder="sourceID" disabled>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="target-db-name">Database name</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="edit-targetSchemaName" id="edit-target-db-name" placeholder="Database name different from source database."
+                                           data-required-error="Target database name is required" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="host-name">Hostname</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="edit-targetHostName" id="edit-host-name" placeholder="Hostname of database server (e.g. localhost)."
+                                           data-required-error="Host name is required" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="edit-db-user-name">Database username</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" name="edit-dbUserName" id="edit-db-user-name" placeholder="Name of database user. Must already exist."
+                                           data-required-error="Username is required" required>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class="form-group row has-feedback">
+                                <label class="col-sm-4 control-label" for="db-password">Database password</label>
+                                <div class="col-sm-8">
+                                    <input type="password" class="form-control" name="edit-dbPassword" id="edit-db-password" placeholder="Database user password.">
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class = "form-group row has-feedback">
+                                <div class="form-check ml-2">
+                                    <label class="form-check-label">
+                                        <input class="form-check-input" type="checkbox" id="edit-additional-config-enable"> Use Additional Configuration Options
+                                    </label>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <div id = "edit-additional-config-options">
+                                <!-- form-group row -->
+                                <div class = "form-group row">
+                                    <label class="col-sm-4 control-label" for="edit-additional-config-browse">Add File</label>
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="edit-additional-config-browse-name" readonly>
+                                            <label class='input-group-append'>
+                                                <span class = "btn btn-primary">
+                                                    Browse&hellip; <input type="file" class="form-control-file" accept = '.json' id="edit-additional-config-browse" style="display: none;">
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="help-block with-errors"></div>
+
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type="button" class="btn btn-primary" id="edit-additional-config-button">Current</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div class = "form-group row has-feedback">
+                                <div class="form-check ml-2">
+                                    <input type="checkbox" class="form-check-input" id="edit-map-enable">
+                                    <label class="form-check-label" for="edit-map-enable">Enable Map Report </label>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                            </div>
+                            <!-- form-group row -->
+                            <div id = "edit-map-options">
+
+                                <div class = "form-group row">
+                                    <label class = "col-sm-4 control-label" for="edit-basemap-select">Tile provider</label>
+                                    <div class = "col-sm-8">
+                                        <select class="form-control" id="edit-basemap-select">
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- form-group row -->
+                                <div class="form-group row has-feedback">
+                                    <label class="col-sm-4 control-label" for="edit-basemap-key">Access token</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="edit-basemap-key" placeholder="Public Scope Authentication Key for Basemap"
+                                               data-required-error="Access token must be provided">
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <!-- form-group> -->
+                                <div id = "edit-file-selectors">
+                                    <div class = "form-group row">
+                                        <label class="col-sm-4 control-label" for="edit-basemap-file-select">Use existing file</label>
+                                        <div class="col-sm-8">
+                                            <select class="form-control" id="edit-basemap-file-select"></select>
+                                        </div>
+                                    </div>
+                                    <!-- form-group row -->
+                                    <div class = "form-group row">
+                                        <label class="col-sm-4 control-label" for="edit-basemap-file-upload">Upload File</label>
+                                        <div class="col-sm-6">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="edit-basemap-file-upload-name" readonly>
+                                                <label class='input-group-append'>
+                                                    <span class = "btn btn-primary">
+                                                        Browse&hellip; <input type="file" class="form-control-file" accept = '.mbtiles' id="edit-basemap-file-upload" style="display: none;">
+                                                    </span>
+                                                </label>
+                                            </div>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <button type = "button" class = "btn btn-primary" id = "edit-upload-map-button">Upload</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- form-group row -->
+                                <div class="form-group row">
+                                    <label class="col-sm-4 control-label" for="edit-latitude-select">Latitude</label>
+                                    <div class = "col-sm-8">
+                                        <select class="form-control" id="edit-latitude-select"></select>
+                                    </div>
+                                </div>
+                                <!-- form-group row -->
+                                <div class="form-group row">
+                                    <label class="col-sm-4 control-label" for="edit-longitude-select">Longitude</label>
+                                    <div class = "col-sm-8">
+                                        <select class="form-control" id="edit-longitude-select"></select>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                </div>
+                                <!-- form-group row -->
+                                <div class="form-group row">
+                                    <label class="col-sm-4 control-label">Map Popup Items (Max 5) </label>
+                                    <div class="col-sm-8 custom-control custom-checkbox" id = "edit-metadata-select">
+                                        <div class = 'dropdown cq-dropdown' data-name='metadata'>
+                                            <button id="edit-metadata-dropdown-button" class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Select Map Popup Display Items
+                                                <span class = "caret"></span>
+                                            </button>
+                                            <ul id = "edit-metadata-dropdown" class = "dropdown-menu" aria-labelledby="metadata-dropdown-button"></ul>
+                                        </div>
+                                    </div>
+                                    <!-- edit-metadata-select -->
+                                </div>
+                                <!-- form-group row -->
+                            </div>
+                            <!-- edit-map-options -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" id="update-button">Update</button>
+                            <button type="button" class="btn btn-danger" id="edit-cancel-button" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary hidden" id="view-additional-config-cancel-button">Cancel</button>
+                        </div>  
+                        <!-- modal-footer -->
+                    </form>
+                    <!-- form-horizontal -->
+                </div>
+                <!-- /.modal-body -->
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!-- Delete setting Modal Content -->
+    <div id="delete-config-modal" class="modal fade" role="dialog" aria-labelledby="delete-config-modal-label">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="delete-config-modal-label">Delete Configuration</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- /.modal-header -->
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the configuration and associated target data?</p>
+                </div>
+                <!-- /.modal-body -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-button">Yes</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+{% endblock %}
+{# modal #}
+{% block helps %}
+<li class="nav-item mx-1" >
+    <a href="https://www.csprousers.org/help/CSWeb/data_settings.html" target="_blank" class="nav-text-cspro"><i class="far fa-question-circle"></i> Help</a>
+</li>
+{% endblock %}
+{# helps #}
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div id="alert" class="alert-placeholder-cspro alert-margin-cspro">
+            </div>
+            <!-- /.alert -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <!-- ALW - Create margin above panel heading -->
+                <div class="card-header py-2">
+                    <i class="fas fa-database fa-fw"></i> Data Configuration
+                    <div class="btn-toolbar float-right">
+                        <button type="button" class="btn btn-primary btn-xs float-right" id="configure-dictionary-button">Add Configuration</button>
+                    </div>
+                </div>
+                <!-- /.panel-heading -->
+                <div class="card-body">
+                <div class="table-responsive">
+                    <table id="data-config-table"  class="table table-striped table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th class="col-4">Data Label</th>
+                                <th class="col-auto">Data Name</th>
+                                <th class="col-3">Target Schema</th>
+                                <th class="col-auto">Total Cases</th>
+                                <th class="col-auto">Processed Cases</th>
+                                <th class="col-2">Last Processed Time</th>
+                                <th class="col-auto">Edit</th>
+                                <th class="col-auto">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dataSetting in dataSettings %}
+                                {%  if dataSetting.targetSchemaName != "" %}
+                                    <tr data-id={{ dataSetting.id}} data-dictname={{ dataSetting.name}} data-dictlabel="{{ dataSetting.label}}">
+                                        <td>{{ dataSetting.label}}</td>
+                                        <td>{{ dataSetting.name}}</td>
+                                        <td>{{ dataSetting.targetHostName}} | {{ dataSetting.targetSchemaName}}</td>
+                                        <td>{{ dataSetting.totalCases}}</td>
+                                        <td>{{ dataSetting.processedCases}}</td>
+                                        <td>{{ dataSetting.lastProcessedTime}}</td>
+                                        <td style="text-align: center" ><a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a></td>
+                                        <td style="text-align: center" ><a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a></td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.panel -->
+        </div>
+        <!-- /.col-12 -->
+    </div>
+    <!-- /.row -->
+{% endblock %}
+{# content #}
+{% block scripts %}
+    <!-- Bootstrap Validator -->
+    <script src={{asset('dist/js/validator.min.js')}}></script>
+    <script src={{asset('dist/js/dropdownCheckboxes.min.js')}}></script>
+    <!-- Page-Level Scripts -->
+    <script>
+        "use strict";
+
+        var addAdditionalConfigOptionsFormSelectors = {
+            additionalConfigEnabled: $("#additional-config-enable"),
+            additionalConfigOptions: $("#additional-config-options"),
+            additionalConfigBrowseName: $("#additional-config-browse-name"),
+            additionalConfigBrowse: $("#additional-config-browse"),
+        };
+
+        var editAdditionalConfigOptionsFormSelectors = {
+            additionalConfigEnabled: $("#edit-additional-config-enable"),
+            additionalConfigOptions: $("#edit-additional-config-options"),
+            additionalConfigBrowseName: $("#edit-additional-config-browse-name"),
+            additionalConfigBrowse: $("#edit-additional-config-browse"),
+        };
+
+        $("#additional-config-enable").on("input", (e) => {
+            addAdditionalConfigForm(addAdditionalConfigOptionsFormSelectors);
+        });
+        $("#edit-additional-config-enable").on("input", (e) => {
+            editAdditionalConfigForm(editAdditionalConfigOptionsFormSelectors);
+        });
+
+        function addAdditionalConfigForm(selectors) {
+            if (!selectors.additionalConfigEnabled.is(':checked')) {
+                selectors.additionalConfigOptions.addClass('hidden');
+                selectors.additionalConfigBrowseName.val('');
+                selectors.additionalConfigBrowse.val('').change();
+                sessionStorage.removeItem("locally-selected-json");
+                return;
+            }
+
+            selectors.additionalConfigOptions.removeClass('hidden');
+        }
+
+        function editAdditionalConfigForm(selectors) {
+            if (!selectors.additionalConfigEnabled.is(':checked')) {
+                selectors.additionalConfigOptions.addClass('hidden');
+                selectors.additionalConfigBrowseName.val('');
+                selectors.additionalConfigBrowse.val('').change();
+                sessionStorage.removeItem("locally-selected-json");
+                return;
+            }
+
+            if (sessionStorage.getItem("remotely-stored-json") === null) {
+                $("#edit-additional-config-button").attr('disabled', '');
+            } else {
+                $("#edit-additional-config-button").removeAttr('disabled');
+            }
+
+            selectors.additionalConfigOptions.removeClass('hidden');
+        }
+
+        $('#additional-config-browse').on('input', (e) => {
+            handleAdditionalConfigFileInput(e, addAdditionalConfigOptionsFormSelectors)
+        });
+        $('#edit-additional-config-browse').on('input', (e) => {
+            handleAdditionalConfigFileInput(e, editAdditionalConfigOptionsFormSelectors)
+        });
+
+        function handleAdditionalConfigFileInput(e, selectors) {
+            var fileInput = $(selectors.additionalConfigBrowse);
+            var file = fileInput.prop('files')[0];
+
+            var reader = new FileReader();
+            reader.readAsText(file);
+
+            reader.onload = function () {
+                //console.log(reader.result);
+                if (isJsonString(reader.result)) {
+                    // valid JSON
+                    clearFormGroupError($(e.target).closest('.form-group'));
+                    selectors.additionalConfigBrowseName.val(file.name);
+                    sessionStorage.setItem("locally-selected-json", reader.result);
+                } else {
+                    // invalid JSON
+                    addFormGroupError($(e.target).closest('.form-group'), "Configuration file contains invalid JSON!", 3500);
+                    selectors.additionalConfigBrowseName.val('');
+                    selectors.additionalConfigBrowse.val('').change();
+                    sessionStorage.removeItem("locally-selected-json");
+                }
+            };
+        }
+
+        function isJsonString(str) {
+            try {
+                JSON.parse(str);
+            } catch (e) {
+                return false;
+            }
+            return true;
+        }
+
+        $("#edit-additional-config-button").on("click", (e) => {
+            switchToViewAdditionalConfigJson(e)
+        });
+
+        function switchToViewAdditionalConfigJson(e) {
+            hideEditConfig();
+            showViewAdditionalConfigJson();
+        }
+
+        $("#view-additional-config-cancel-button").on("click", (e) => {
+            switchToEditConfig(e)
+        });
+        $("#view-additional-config-dismiss-button").on("click", (e) => {
+            switchToEditConfig(e)
+        });
+
+        function switchToEditConfig(e) {
+            hideViewAdditionalConfigJson();
+            showEditConfig();
+        }
+
+        function showEditConfig() {
+            $("#edit-config-modal-label").text("Edit Configuration");
+            $("#edit-modal-input").removeClass("hidden");
+            $("#update-button").removeClass("hidden");
+            $("#edit-cancel-button").removeClass("hidden");
+            $("#edit-dismiss-button").removeClass("hidden");
+        }
+
+        function hideEditConfig() {
+            $("#edit-modal-input").addClass("hidden");
+            $("#update-button").addClass("hidden");
+            $("#edit-cancel-button").addClass("hidden");
+            $("#edit-dismiss-button").addClass("hidden");
+        }
+
+        function showViewAdditionalConfigJson() {
+            $("#edit-config-modal-label").text("Current Additional Configuration Options");
+            var json_obj = JSON.parse(sessionStorage.getItem("remotely-stored-json"));
+            var json_prettify = JSON.stringify(json_obj, null, 2);
+            document.getElementById("additional-config-json-text-holder").innerHTML = json_prettify;
+            $("#view-additional-config-json").removeClass("hidden");
+            $("#view-additional-config-cancel-button").removeClass("hidden");
+            $("#view-additional-config-dismiss-button").removeClass("hidden");
+        }
+
+        function hideViewAdditionalConfigJson() {
+            document.getElementById("additional-config-json-text-holder").innerHTML = "";
+            $("#view-additional-config-json").addClass("hidden");
+            $("#view-additional-config-cancel-button").addClass("hidden");
+            $("#view-additional-config-dismiss-button").addClass("hidden");
+        }
+
+        var services = [
+            {
+                name: 'ESRI',
+                apiUrl: 'https://{s}.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+                keyRequired: false,
+                keyAccepted: false,
+                options: {
+                    minZoom: 1,
+                    maxZoom: 19,
+                    subdomains: ['server', 'services'],
+                    // attribution: 'USGS, NOAA',
+                    // attributionUrl: 'https://static.arcgis.com/attribution/World_Street_Map'
+                }
+            },
+            {
+                name: 'Mapbox',
+                apiUrl: 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+                keyRequired: true,
+                keyAccepted: true,
+                testUrl: 'https://api.mapbox.com/tokens/v2?access_token={access_token}',
+                options: {
+                    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                    maxZoom: 23,
+                    minZoom: 1,
+                    id: 'mapbox/streets-v11',
+                    tileSize: 512,
+                    zoomOffset: -1,
+                }
+        {# mapTypes: [['Mapbox Streets', 'mapbox/streets-v11'],
+        ['Mapbox Outdoors', 'mapbox/outdoors-v11'],
+        ['Mapbox Light', 'mapbox/light-v10'],
+        ['Mapbox Dark', 'mapbox/dark-v10'],
+        ['Mapbox Satellite', 'mapbox/satellite-v9'],
+        ['Mapbox Satellite Streets', 'mapbox/satellite-streets-v11'],
+        ['Mapbox Navigation Day', 'mapbox/navigation-day-v1'],
+        ['Mapbox Navigation Night', 'mapbox/navigation-night-v1']] #}
+                },
+                {name: 'File',
+                    keyRequired: false,
+                    keyAccepted: false,
+                    options: {
+                        minZoom: 0,
+                        maxZoom: 18
+                    }
+                },
+            ];
+
+            var addFormSelectors = {
+                mapEnable: $("#map-enable"),
+                mapOptions: $("#map-options"),
+                basemapSelect: $("#basemap-select"),
+                basemapKey: $("#basemap-key"),
+                latitudeSelect: $("#latitude-select"),
+                longitudeSelect: $("#longitude-select"),
+                fileSelectors: $("#file-selectors"),
+                fileUpload: $("#basemap-file-upload"),
+                fileSelect: $("#basemap-file-select"),
+                fileUploadName: $("#basemap-file-upload-name"),
+                uploadMapButton: $("#upload-map-button"),
+                metadataSelect: $("#metadata-select"),
+                metadataButton: $("#metadata-dropdown-button"),
+                targetDb: $("#target-db-name"),
+                hostname: $("#host-name"),
+                dbUserName: $("#db-user-name"),
+                submitButton: $("#add-button")
+
+            };
+
+            var editFormSelectors = {
+                mapEnable: $("#edit-map-enable"),
+                mapOptions: $("#edit-map-options"),
+                basemapSelect: $("#edit-basemap-select"),
+                basemapKey: $("#edit-basemap-key"),
+                latitudeSelect: $("#edit-latitude-select"),
+                longitudeSelect: $("#edit-longitude-select"),
+                fileSelectors: $("#edit-file-selectors"),
+                fileUpload: $("#edit-basemap-file-upload"),
+                fileSelect: $("#edit-basemap-file-select"),
+                fileUploadName: $("#edit-basemap-file-upload-name"),
+                uploadMapButton: $("#edit-upload-map-button"),
+                metadataSelect: $("#edit-metadata-select"),
+                metadataButton: $("#edit-metadata-dropdown-button"),
+                targetDb: $("#edit-target-db-name"),
+                hostname: $("#edit-host-name"),
+                dbUserName: $("#edit-db-user-name"),
+                submitButton: $("#update-button")
+            };
+
+
+            // variables for importUsers
+            function showAlert(message, alertStyle) {
+                $("#alert").replaceWith("<div id='alert' class='" + alertStyle + " alert-margin-cspro'>" + message + "</div>");
+                $("#alert").show();
+            }
+            $(document).ready(function () {
+                // Spinner functionality
+                var $body = $("body");
+                
+                $(document).ajaxStart(function (event, request, settings) {
+                    $body.addClass("loading");
+                });
+                $(document).ajaxComplete(function (event, request, settings) {
+                    $body.removeClass("loading");
+                });
+                if (sessionStorage.getItem("add-config-success")) {
+                    showAlert(sessionStorage.getItem("add-config-success"), "alert alert-success");
+                    sessionStorage.clear();
+                } else if (sessionStorage.getItem("add-config-failure")) {
+                    showAlert(sessionStorage.getItem("add-config-failure"), "alert alert-danger");
+                    sessionStorage.clear();
+                }
+                $('#data-config-table').DataTable({
+                columnDefs: [{
+                    orderable: false,
+                    targets: [6,7]
+                    }]
+                });
+                var basemapSelect = $("#basemap-select");
+                var editBasemapSelect = $("#edit-basemap-select");
+                for (var service in services) {
+                    var serviceOption = document.createElement('option');
+                    serviceOption.appendChild(document.createTextNode(services[service].name));
+                    serviceOption.setAttribute("value", service);
+                    basemapSelect.append(serviceOption);
+                    editBasemapSelect.append(serviceOption.cloneNode(true));
+                }
+                if (!addFormSelectors.fileUpload.val()) {
+                    addFormSelectors.uploadMapButton.attr('disabled', '');
+                }
+                if (!editFormSelectors.fileUpload.val()) {
+                    editFormSelectors.uploadMapButton.attr('disabled', '');
+                }
+                $.ajax({
+                    type: "GET",
+                    url: "{{path('mapFileInfo')}}"
+                }).done((files) => {
+                    console.log(files);
+                    var fileSelect = document.getElementById('basemap-file-select');
+                    var editFileSelect = document.getElementById('edit-basemap-file-select');
+                    if (files.length == 0) {
+                        var fileOption = document.createElement('option');
+                        fileOption.appendChild(document.createTextNode("No existing files"));
+                        fileOption.setAttribute("value", "-1");
+                        fileSelect.append(fileOption);
+                        editFileSelect.append(fileOption.cloneNode(true));
+                        fileSelect.setAttribute('disabled', '');
+                        editFileSelect.setAttribute('disabled', '');
+                    } else {
+                        for (var file in files) {
+                            console.log(files[file]);
+                            addMapFileOption(files[file]);
+                        }
+                    }
+                });
+
+            });
+
+            function updateLocationItems(dictname, selectedVals) {
+                return $.ajax({
+                    type: "GET",
+                    url: `{{path('map-report')}}/location-items/${dictname}`
+                }).done((items) => {
+                    console.log(items);
+                    var gps = items.gps;
+                    var metadata = items.metadata.Record;
+                    var latSelector = $("#latitude-select");
+                    var lngSelector = $("#longitude-select");
+                    var editLatSelector = $("#edit-latitude-select");
+                    var editLngSelector = $("#edit-longitude-select");
+                    var metadataDropdown = $("#metadata-dropdown");
+                    var editMetadataDropdown = $("#edit-metadata-dropdown");
+                    latSelector.empty();
+                    lngSelector.empty();
+                    editLatSelector.empty();
+                    editLngSelector.empty();
+                    metadataDropdown.empty();
+                    editMetadataDropdown.empty();
+                    for (var gpsKey in gps) {
+                        var latSelectOption = document.createElement("option");
+                        latSelectOption.appendChild(document.createTextNode(gpsKey + ': ' + gps[gpsKey]));
+                        latSelectOption.setAttribute("value", gpsKey);
+                        var lngSelectOption = latSelectOption.cloneNode(true);
+                        var editLatSelectOption = latSelectOption.cloneNode(true);
+                        var editLngSelectOption = lngSelectOption.cloneNode(true);
+                        latSelector.append(latSelectOption);
+                        lngSelector.append(lngSelectOption);
+                        editLatSelector.append(editLatSelectOption);
+                        editLngSelector.append(editLngSelectOption);
+                    }
+                    var keys = Object.keys(gps);
+                    if (selectedVals) {
+                        latSelector.val(selectedVals.gps.latitude);
+                        editLatSelector.val(selectedVals.gps.latitude);
+                        lngSelector.val(selectedVals.gps.longitude);
+                        editLngSelector.val(selectedVals.gps.longitude);
+                    } else if (keys.length >= 2) {
+                        lngSelector.val(keys[1]);
+                        editLngSelector.val(keys[1]);
+                    }
+
+                    metadata.forEach((record) => {
+                        var metadataName = Object.keys(record).filter((el) => el != 'items')[0];
+                        var metadataLabel = document.createElement("label");
+                        metadataLabel.setAttribute('class', 'control-label');
+                        metadataLabel.appendChild(document.createTextNode(metadataName + ': ' + record[metadataName]));
+                        metadataDropdown.append(metadataLabel);
+                        editMetadataDropdown.append(metadataLabel.cloneNode(true));
+                        for (var item in record.items) {
+                            var listMem = document.createElement('li');
+                            var checkbox = document.createElement("input");
+                            var checkId = 'check' + item;
+                            checkbox.setAttribute("class", "metadata-check");
+                            checkbox.setAttribute("type", "checkbox");
+                            checkbox.setAttribute("id", checkId);
+                            checkbox.setAttribute("value", item);
+                            if (selectedVals && selectedVals.metadata.includes(item)) {
+                                checkbox.setAttribute('checked', '');
+                            }
+                            var checkLabel = document.createElement("label");
+                            checkLabel.setAttribute("class", "radio-btn");
+                            checkLabel.setAttribute("for", checkId);
+                            checkLabel.appendChild(checkbox);
+                            checkLabel.appendChild(document.createTextNode(item + ': ' + record.items[item]));
+                            listMem.appendChild(checkLabel);
+                            metadataDropdown.append(listMem);
+                            editMetadataDropdown.append(listMem.cloneNode(true));
+                        }
+                    });
+                    var buttonList = document.createElement('li');
+                    buttonList.setAttribute('class', 'text-center');
+                    var clearButton = document.createElement('button');
+                    clearButton.setAttribute('type', 'button');
+                    clearButton.setAttribute('class', 'btn btn-default btn-xs clear close-dropdown');
+                    clearButton.setAttribute('value', 'Clear');
+                    clearButton.appendChild(document.createTextNode('clear'));
+                    buttonList.appendChild(clearButton);
+                    metadataDropdown.append(buttonList);
+                    editMetadataDropdown.append(buttonList.cloneNode(true));
+                    $("#metadata-select").find('.cq-dropdown').dropdownCheckboxes();
+                    $("#edit-metadata-select").find('.cq-dropdown').dropdownCheckboxes();
+                });
+            }
+
+            function clearFormGroupError(formGroup) {
+                formGroup.removeClass('has-error has-danger custom-error has-success custom-success');
+                formGroup.find('.help-block').empty().removeClass('custom-error custom-success');
+            }
+
+            function addFormGroupError(formGroup, error, timeout) {
+                formGroup.addClass('has-error has-danger custom-error');
+                formGroup.removeClass('has-success custom-success');
+                formGroup.find('.help-block').html(`<ul class = 'list-unstyled'> <li>${error}</li> </ul>`).addClass('custom-error');
+                if (timeout) {
+                    setTimeout(() => {
+                        clearFormGroupError(formGroup)
+                    }, timeout);
+                }
+            }
+
+            function addFormGroupSuccess(formGroup, message, timeout) {
+                formGroup.removeClass('has-error has-danger custom-error');
+                formGroup.addClass('has-success custom-success');
+                if (message) {
+                    formGroup.find('.help-block').html(`<ul class = 'list-unstyled'> <li>${message}</li> </ul>`).addClass('custom-success');
+                } else {
+                    formGroup.find('.help-block').empty();
+                }
+                if (timeout) {
+                    setTimeout(() => {
+                        clearFormGroupError(formGroup)
+                    }, timeout);
+                }
+            }
+
+            function updateDataSettingsForm(selectors) {
+                if (!selectors.mapEnable.is(':checked')) {
+                    selectors.mapOptions.addClass('hidden');
+                    selectors.mapOptions.removeAttr('required');
+                    clearFormGroupError(selectors.basemapKey.closest('.form-group'));
+                    return;
+                }
+                clearFormGroupError(selectors.mapEnable.closest(".form-group row"));
+                selectors.mapOptions.removeClass('hidden');
+                var selectedService = services[selectors.basemapSelect.find(':selected').val()];
+                if (selectedService.keyAccepted) {
+                    selectors.basemapKey.removeAttr('disabled');
+                    if (selectedService.keyRequired) {
+                        selectors.basemapKey.attr('required', '');
+                    } else {
+                        clearFormGroupError(selectors.basemapKey.closest('.form-group'));
+                    }
+                } else {
+                    selectors.basemapKey.attr('disabled', '');
+                    selectors.basemapKey.removeAttr('required');
+                    clearFormGroupError(selectors.basemapKey.closest('.form-group'));
+                }
+                if (selectedService.name === 'File') {
+                    selectors.fileSelectors.removeClass('hidden');
+                } else {
+                    selectors.fileSelectors.addClass('hidden');
+                }
+                if (selectors.latitudeSelect.val() == selectors.longitudeSelect.val()) {
+                    addFormGroupError(selectors.longitudeSelect.closest('.form-group'), "Latitude and longitude items must be different");
+                    selectors.submitButton.attr('disabled', '');
+                } else {
+                    clearFormGroupError(selectors.longitudeSelect.closest('.form-group'));
+                    selectors.submitButton.removeAttr('disabled');
+                }
+                var checkedCount = selectors.metadataSelect.find("input:checked").length;
+                var checkboxes = selectors.metadataSelect.find("input");
+                var tooltip = "";
+                if (checkedCount >= 5) {
+                    checkboxes.each((child) => {
+                        var checkbox = $(checkboxes[child]);
+                        if (!checkbox.is(":checked")) {
+                            checkbox.attr('disabled', '');
+                        } else {
+                            if (tooltip) {
+                                tooltip += ', ';
+                            }
+                            tooltip += checkbox.closest('.radio-btn').text();
+                        }
+                    });
+                } else {
+                    checkboxes.each((child) => {
+                        var checkbox = $(checkboxes[child]);
+                        checkbox.removeAttr('disabled');
+                        if (checkbox.is(":checked")) {
+                            if (tooltip) {
+                                tooltip += ', ';
+                            }
+                            tooltip += checkbox.closest('.radio-btn').text();
+                        }
+                    });
+                }
+                selectors.metadataButton.attr('title', tooltip);
+            }
+
+            function addMapFileOption(file) {
+                var fileSelect = document.getElementById('basemap-file-select');
+                var editFileSelect = document.getElementById('edit-basemap-file-select');
+                var selectedOption = fileSelect.options[fileSelect.selectedIndex];
+                if (selectedOption && selectedOption.value == '-1') {
+                    fileSelect.removeChild(fileSelect.firstChild);
+                    editFileSelect.removeChild(editFileSelect.firstChild);
+                }
+                fileSelect.removeAttribute('disabled');
+                editFileSelect.removeAttribute('disabled');
+                var options = $(fileSelect).find('option');
+                var unique = true;
+                options.each((child) => {
+                    if (options[child].value == file) {
+                        unique = false;
+                        return;
+                    }
+                });
+                if (unique) {
+                    var fileOption = document.createElement('option');
+                    fileOption.appendChild(document.createTextNode(file));
+                    fileOption.setAttribute("value", file);
+                    fileSelect.appendChild(fileOption);
+                    editFileSelect.appendChild(fileOption.cloneNode(true));
+                }
+
+            }
+
+            $("#upload-map-button").on('click', (e) => {
+                uploadMapFile(addFormSelectors);
+            });
+            $("#edit-upload-map-button").on('click', (e) => {
+                uploadMapFile(editFormSelectors);
+            });
+
+            $('#basemap-file-upload').on('input', (e) => {
+                handleBasemapFileInput(e, addFormSelectors)
+            });
+            $('#edit-basemap-file-upload').on('input', (e) => {
+                handleBasemapFileInput(e, editFormSelectors)
+            });
+
+            function handleBasemapFileInput(e, selectors) {
+                var filename = e.target.value.split('\\').pop().split('/').pop()
+                if (filename.includes(' ')) {
+                    addFormGroupError($(e.target).closest('.form-group'), "Map file names must not have spaces!", 3500);
+                    selectors.uploadMapButton.attr('disabled', '');
+                    selectors.fileUpload.val('');
+                    selectors.fileUploadName.val('').change();
+                } else {
+                    clearFormGroupError($(e.target).closest('.form-group'));
+                    selectors.uploadMapButton.removeAttr('disabled');
+                    selectors.fileUploadName.val(filename).change();
+                }
+
+            }
+
+            function uploadMapFile(selectors) {
+                var mapFile = selectors.fileUpload.prop('files')[0];
+                if (!mapFile) {
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = (e) => {
+                    var rawBytes = e.target.result;
+                    $("body").addClass("loading");
+                    $.ajax({
+                        type: "PUT",
+                        url: `{{path('dataSettings')}}/${mapFile.name}/content`,
+                        error: (error) => {
+                            //console.log(error);
+                            addFormGroupError(selectors.fileUpload.closest('.form-group'), "Unable to upload file.");
+                        },
+                        success: (response) => {
+                            addMapFileOption(response.name);
+                            selectors.fileSelect.val(response.name).change();
+                            selectors.fileUpload.val('').change();
+                            selectors.fileUploadName.val('').change();
+                            selectors.uploadMapButton.attr('disabled', '');
+                            addFormGroupSuccess(selectors.fileUpload.closest('.form-group'), "File successfully uploaded!", 3500);
+                        },
+                        data: rawBytes,
+                        cache: false,
+                        contentType: "application/octet-stream",
+                        processData: false
+                    });
+                };
+                reader.readAsArrayBuffer(mapFile);
+                //fetch(`{{path('dataSettings')}}/${mapFile.name}/content`, {method: "PUT", body: formData});
+                //console.log(mapFile.size);
+            }
+
+            $("#map-options").on("input", (e) => {
+                updateDataSettingsForm(addFormSelectors)
+            });
+            $("#edit-map-options").on("input", (e) => {
+                updateDataSettingsForm(editFormSelectors)
+            });
+
+            $("#map-enable").on("input", (e) => {
+                handleMapEnableInput(e, addFormSelectors);
+            });
+            $("#edit-map-enable").on("input", (e) => {
+                handleMapEnableInput(e, editFormSelectors);
+            });
+
+            function handleMapEnableInput(e, selectors) {
+                if (selectors.latitudeSelect.children().length > 1) {
+                    updateDataSettingsForm(selectors);
+                } else {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    addFormGroupError(selectors.mapEnable.closest('.form-group'), "Cannot enable Map Report. Dictionary does not contain two or more items with decimal values, unable to identify latitude and longitude data.");
+                    selectors.mapEnable.prop('checked', false);
+                    updateDataSettingsForm(selectors);
+                }
+            }
+
+        {# $("#map-enable").on("input", (e) => {
+            if(e.target.checked) {
+                document.getElementById('map-options').classList.remove('hidden');
+                var baseMapService = document.getElementById("basemap-select").value;
+
+                if(baseMapService == 'Mapbox') {
+                    $('#basemap-key').attr('required', '');
+                }
+                else {
+                    $('#basemap-key').removeAttr('required');
+                }
+                
+            }
+            else {
+                document.getElementById('map-options').classList.add('hidden');
+                document.getElementById('basemap-key').required = false;
+            }
+        }); #}
+
+
+            // Add configuration
+            $("#configure-dictionary-button").click(function () {
+                if ($('#config option').length == 0) {
+                    showAlert("No more dictionaries available to configure.", "alert alert-danger");
+                } else {
+                    var dictname = $("#config option:selected").attr("dictname");
+                    updateLocationItems(dictname);
+                    document.getElementById('additional-config-options').classList.add('hidden');
+                    document.getElementById('additional-config-enable').checked = false;
+                    sessionStorage.removeItem('locally-selected-json');
+                    // clears disable from a invalid json file
+                    document.getElementById("add-button").disabled = false;
+                    document.getElementById('map-options').classList.add('hidden');
+                    document.getElementById('map-enable').checked = false;
+                    document.getElementById('basemap-key').required = false;
+                    $("#add-config-modal").modal("show");
+                }
+
+            });
+
+            //set focus to the first field on the form
+            $("#add-config-modal").on("shown.bs.modal", function () {
+                addConfig.initBootstrapValidator();
+                $("#target-db-name").focus();
+            });
+
+            $("#add-config-modal").on("hidden.bs.modal", function () {
+                $("#add-config-form").unbind("submit");
+                $(this).find('form')[0].reset();
+            });
+
+            $("#config").on('input', (e) => {
+                var dictname = $("#config option:selected").attr("dictname");
+                updateLocationItems(dictname);
+                var addConfigForm = $("#add-config-form");
+                var formGroups = addConfigForm.find('.form-group');
+                formGroups.each((child) => {
+                    clearFormGroupError($(formGroups[child]));
+                });
+                document.getElementById('map-options').classList.add('hidden');
+                document.getElementById('map-enable').checked = false;
+                document.getElementById('basemap-key').required = false;
+                clearFormGroupError($("#map-enable").closest('.form-group'));
+                $("#add-config-modal").modal("show");
+            });
+                
+            function styleDifferences(a, b) {
+                var as = getComputedStyle(a, null);
+                var bs = getComputedStyle(b, null);
+                var r = [];
+                for (var i in as)
+                    if (as[i] !== bs[i])
+                        r.push(i + ' differs: ' + as[i] + ' | ' + bs[i]);
+                return r.join('\n');
+            }
+
+            //set focus to the first field on the form
+            $("#add-config-modal").on("shown.bs.modal", function () {
+                addConfig.initBootstrapValidator();
+                $("#target-db-name").focus();
+            });
+            $("#add-config-modal").on("hidden.bs.modal", function () {
+                $("#add-config-form").unbind("submit");
+                $(this).find('form')[0].reset();
+            });
+
+            function validateForm(selectors) {
+                if (!(selectors.targetDb.val() && selectors.hostname.val() && selectors.dbUserName.val())) {
+                    return false;
+                }
+                if (selectors.mapEnable.is(':checked')) {
+                    var selectedService = services[selectors.basemapSelect.find(':selected').val()];
+                    if (selectedService.keyRequired && !selectors.basemapKey.val()) {
+                        return false;
+                    }
+                    if (selectedService.name == "File" && selectors.fileSelect.val() == "-1") {
+                        addFormGroupError(selectors.fileUpload.closest('.form-group'), "Must upload a file to use as a basemap!", 3500);
+                        return false;
+                    }
+                    if (selectors.latitudeSelect.val() == selectors.longitudeSelect.val()) {
+                        addFormGroupError(selectors.longitudeSelect.closest('.form-group'), "Latitude and longitude items must be different");
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            var addConfig = (function () {
+                // Private
+                var submit = function (event) {
+                    event.preventDefault();
+                    //TODO: check if the source database is same as target DB and display alert
+                    //any tables in the target will be deleted do you want to continue alert?
+                    var $modal = $("#add-config-modal");
+                    var dataSetting = {};
+                    // get the data from your modal
+                    $modal.find("input").each(function () {
+                        if ($(this).attr("name"))
+                            dataSetting[$(this).attr("name")] = $(this).val();
+                    });
+                    dataSetting['id'] = $('#config').val();
+                    dataSetting['label'] = $("#config option:selected").text();
+                    if ($('#additional-config-enable').is(':checked')) {
+                        var locallySelectedJson = sessionStorage.getItem("locally-selected-json");
+                        locallySelectedJson = JSON.parse(locallySelectedJson);
+                        dataSetting['additionalConfig'] = locallySelectedJson;
+                    } else {
+                        dataSetting['additionalConfig'] = null;
+                    }
+                    if ($('#map-enable').is(':checked')) {
+                        var metaCheckboxes = $("#metadata-select").find("input:checked");
+                        var metadataCols = [];
+                        metaCheckboxes.each((child) => {
+                            var checkbox = $(metaCheckboxes[child]);
+                            metadataCols.push(checkbox.attr("value"));
+                        });
+                        var mapInfo = {
+                            enabled: true,
+                            service: {},
+                            gps: {
+                                latitude: $("#latitude-select option:selected").val(),
+                                longitude: $("#longitude-select option:selected").val()
+                            },
+                            metadata: metadataCols
+                        }
+                        Object.assign(mapInfo.service, services[$("#basemap-select").find(':selected').val()]);
+                        if (mapInfo.service.options && mapInfo.service.keyAccepted) {
+                            mapInfo.service.options.accessToken = $("#basemap-key").val();
+                        }
+                        if (mapInfo.service.name === "File") {
+                            mapInfo.service.filename = $("#basemap-file-select").val();
+                            var selectedFile = $("#basemap-file-select").val().split('.').slice(0, -1).join('.');
+                            var webUrl = "{{path('dataSettings')}}/".replace('dataSettings', 'maps');
+                            mapInfo.service.apiUrl = `${webUrl}${selectedFile}/{z}/{x}/{y}.png`;
+                        }
+                        dataSetting['mapInfo'] = mapInfo;
+                    } else {
+                        dataSetting['mapInfo'] = {enabled: false};
+                    }
+                    $modal.modal("hide");
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ path('addSetting') }}",
+                        data: JSON.stringify(dataSetting),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                var alertMsg = "The configuration for " + dataSetting['label'] + " was successfully added.";
+                                sessionStorage.setItem("add-config-success", alertMsg);
+                                location.reload();
+                                //showAlert("The configuration " + dataSetting['label'] + " was successfully added.", "alert alert-success");
+                            } else {
+                                var alertMsg = "Failed adding the configuration for " + dataSetting['label'] + "<br>" +
+                                        response.description + "</br>";
+                                sessionStorage.setItem("add-config-failure", alertMsg);
+                                showAlert(sessionStorage.getItem("add-config-failure"), "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            //in case of  timeout  the redirect response comes with html content and status code as 200
+                            //this causes an error as the response text is not json but datatype in ajax is set to json
+                            //in this case redirect to logout
+                            if (response.status === 200 || response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                var errResponse = JSON.parse(response.responseText);
+                                var message = errResponse.description != null ? errResponse.description : response.responseText;
+                                showAlert(message, "alert alert-danger");
+                            }
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                }
+
+                // Public
+                var initBootstrapValidator = function () {
+                    $("#add-config-form").validator().on("submit", function (event) {
+                        // If the form is invalidated by Bootstrap Validator then the submit event calls
+                        // preventDefault(). Use isDefaultPrevented() to detect whether form is valid.
+
+                        if (!event.isDefaultPrevented() && validateForm(addFormSelectors)) {
+                            submit(event);
+                        } else {
+                            event.preventDefault();
+                        }
+
+                    });
+                };
+                return {
+                    initBootstrapValidator: initBootstrapValidator
+                };
+            })();
+            //Edit config functionality 
+            $('#data-config-table tbody').on('click', '.edit-button-class', function (event) {
+                var tr = $(event.target).closest("tr");
+                var dataSettings
+                = {{ dataSettings|  json_encode |  raw  }};
+                        var dictionaryId = $(tr).data("id");
+                clearFormGroupError($("#edit-map-enable").closest('.form-group'));
+                hideViewAdditionalConfigJson();
+                showEditConfig();
+                for (var i = 0; i < dataSettings.length; i++) {
+                    if (dataSettings[i].id == dictionaryId) {
+                        console.log(dataSettings[i]);
+                        $("#edit-host-name").val(dataSettings[i].targetHostName);
+                        $("#edit-target-db-name").val(dataSettings[i].targetSchemaName);
+                        $("#edit-source-data").val(dataSettings[i].label);
+                        $("#edit-configId").val(dictionaryId);
+                        $("#edit-db-password").val(dataSettings[i].dbPassword);
+                        $("#edit-db-user-name").val(dataSettings[i].dbUserName);
+                        $("#edit-additional-config-browse-name").val("");
+                        if (dataSettings[i].additionalConfig === "null") {
+                            sessionStorage.removeItem("remotely-stored-json");
+                        } else {
+                            sessionStorage.setItem("remotely-stored-json", dataSettings[i].additionalConfig);
+                        }
+                        if (sessionStorage.getItem("remotely-stored-json") === null) {
+                            document.getElementById('edit-additional-config-options').classList.add('hidden');
+                            document.getElementById('edit-additional-config-enable').checked = false;
+                            document.getElementById('edit-additional-config-button').setAttribute('disabled', '');
+                        } else {
+                            document.getElementById('edit-additional-config-options').classList.remove('hidden');
+                            document.getElementById('edit-additional-config-enable').checked = true;
+                            document.getElementById('edit-additional-config-button').removeAttribute('disabled');
+                        }
+                        var mapInfo = JSON.parse(dataSettings[i].mapInfo);
+                        if (mapInfo.enabled) {
+                            document.getElementById('edit-map-options').classList.remove('hidden');
+                            document.getElementById('edit-map-enable').checked = true;
+                            console.log(mapInfo);
+                            var serviceName = mapInfo.service.name;
+                            var serviceId = '0';
+                            for (var service in services) {
+                                if (services[service].name == serviceName) {
+                                    serviceId = service;
+                                    break;
+                                }
+                            }
+                            $('#edit-basemap-select').val(serviceId);
+                            if (mapInfo.service.options.accessToken) {
+                                $('#edit-basemap-key').val(mapInfo.service.options.accessToken);
+                            }
+                            if (mapInfo.service.filename) {
+                                $('#edit-basemap-file-select').val(mapInfo.service.filename);
+                            }
+                            updateLocationItems(dataSettings[i].name, {
+                                gps: mapInfo.gps,
+                                metadata: mapInfo.metadata
+                            }).always((e) => {
+                                updateDataSettingsForm(editFormSelectors);
+                            });
+
+                        } else {
+                            document.getElementById('edit-map-options').classList.add('hidden');
+                            document.getElementById('edit-map-enable').checked = false;
+                            document.getElementById('edit-basemap-key').required = false;
+                            updateLocationItems(dataSettings[i].name);
+                        }
+                    }
+                }
+                var editConfigForm = $("#edit-config-form");
+                var formGroups = editConfigForm.find('.form-group');
+                formGroups.each((child) => {
+                    clearFormGroupError($(formGroups[child]));
+                });
+                $("#edit-config-modal").modal("show");
+            }
+            );
+            $("#edit-config-modal").on("shown.bs.modal", function () {
+                editConfig.initBootstrapValidator();
+                $("#edit-target-db-name").focus();
+                //console.log(styleDifferences(document.getElementById("edit-upload-map-button"), document.getElementById("edit-additional-config-button")));
+            });
+
+            $("#edit-config-modal").on("hidden.bs.modal", function () {
+                $("#edit-config-form").unbind("submit");
+            });
+            var editConfig = (function () {
+                // Private
+                var submit = function (event) {
+                    event.preventDefault();
+                    //TODO: check if the source database is same as target DB and display alert
+                    //any tables in the target will be deleted do you want to continue alert?
+                    var $modal = $("#edit-config-modal");
+                    var dataSetting = {};
+                    // get the data from your modal
+                    $modal.find('input').each(function () {
+                        if ($(this).attr("name")) {
+                            var attribName = $(this).attr("name");
+                            attribName = attribName.substr(attribName.indexOf('-') + 1);
+                            dataSetting[attribName] = $(this).val();
+                        }
+                    });
+                    dataSetting['id'] = dataSetting['configId'];
+                    dataSetting['label'] = dataSetting['source-data'];
+                    if ($('#edit-additional-config-enable').is(':checked')) {
+                        // additional config is enabled
+                        var locallySelectedJson = sessionStorage.getItem("locally-selected-json");
+                        var remotelyStoredJson = sessionStorage.getItem("remotely-stored-json");
+                        if (locallySelectedJson !== null) {
+                            // locally selected json exits. upload json.
+                            locallySelectedJson = JSON.parse(locallySelectedJson);
+                            dataSetting['additionalConfig'] = locallySelectedJson;
+                        } else if (remotelyStoredJson !== null) {
+                            // remotely stored json exists. upload json (to preserve it).
+                            remotelyStoredJson = JSON.parse(remotelyStoredJson);
+                            dataSetting['additionalConfig'] = remotelyStoredJson;
+                        } else {
+                            // locally selected and remotely stored json is empty
+                            dataSetting['additionalConfig'] = null;
+                        }
+                    } else {
+                        // additional config is disabled. upload empty json.
+                        dataSetting['additionalConfig'] = null;
+                    }
+                    if ($('#edit-map-enable').is(':checked')) {
+                        var metaCheckboxes = $("#edit-metadata-select").find("input:checked");
+                        var metadataCols = [];
+                        metaCheckboxes.each((child) => {
+                            var checkbox = $(metaCheckboxes[child]);
+                            metadataCols.push(checkbox.attr("value"));
+                        });
+                        var mapInfo = {
+                            enabled: true,
+                            service: {},
+                            gps: {
+                                latitude: $("#edit-latitude-select option:selected").val(),
+                                longitude: $("#edit-longitude-select option:selected").val()
+                            },
+                            metadata: metadataCols
+                        }
+                        Object.assign(mapInfo.service, services[$("#edit-basemap-select").find(':selected').val()]);
+                        if (mapInfo.service.options && mapInfo.service.keyAccepted) {
+                            mapInfo.service.options.accessToken = $("#edit-basemap-key").val();
+                        }
+                        if (mapInfo.service.name === "File") {
+                            mapInfo.service.filename = $("#edit-basemap-file-select").val();
+                            var selectedFile = $("#edit-basemap-file-select").val().split('.').slice(0, -1).join('.');
+                            var webUrl = "{{path('dataSettings')}}/".replace('dataSettings', 'maps');
+                            mapInfo.service.apiUrl = `${webUrl}${selectedFile}/{z}/{x}/{y}.png`;
+                        }
+                        dataSetting['mapInfo'] = mapInfo;
+                    } else {
+                        dataSetting['mapInfo'] = {enabled: false};
+                    }
+                    $modal.modal("hide");
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ path('updateSetting') }}",
+                        data: JSON.stringify(dataSetting),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                var alertMsg = "The configuration for " + dataSetting['label'] + " was successfully updated.";
+                                sessionStorage.setItem("add-config-success", alertMsg);
+                                location.reload();
+                            } else {
+                                var alertMsg = "Failed updating the configuration for " + dataSetting['label'] + "<br>" +
+                                        response.description + "</br>";
+                                sessionStorage.setItem("add-config-failure", alertMsg);
+                                showAlert(sessionStorage.getItem("add-config-failure"), "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            //in case of  timeout  the redirect response comes with html content and status code as 200
+                            //this causes an error as the response text is not json but datatype in ajax is set to json
+                            //in this case redirect to logout
+                            if (response.status === 200 || response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            } else {
+                                console.log(response.responseText);
+                                var errResponse = JSON.parse(response.responseText);
+                                var message = errResponse.description != null ? errResponse.description : response.responseText;
+                                showAlert(message, "alert alert-danger");
+                            }
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                }
+
+                // Public
+                var initBootstrapValidator = function () {
+                    $("#edit-config-form").validator().on("submit", function (event) {
+                        // If the form is invalidated by Bootstrap Validator then the submit event calls
+                        // preventDefault(). Use isDefaultPrevented() to detect whether form is valid.
+                        if (!event.isDefaultPrevented() && validateForm(editFormSelectors)) {
+                            submit(event);
+                        } else {
+                            event.preventDefault();
+                        }
+                    });
+                };
+                return {
+                    initBootstrapValidator: initBootstrapValidator
+                };
+            })();
+
+            // Delete config functionality
+            (function () {
+                var tr;
+                $('#data-config-table tbody').on('click', '.delete-button-class', function (event) {
+                    tr = $(event.target).closest("tr");
+                    var dictionaryLabel = $(tr).data("dictlabel");
+                    var dictionaryName = $(tr).data("dictname");
+                    var modalText = 'Are you sure you want to delete the configuration for "' + dictionaryLabel + ' (' + dictionaryName + ')"? This will delete the associated processed cases.';
+                    $("#delete-config-modal").find('.modal-body').text(modalText);
+                    $("#delete-config-modal").modal("show");
+                });
+                $("#delete-button").on("click", function (event) {
+                    event.preventDefault();
+                    $("#delete-config-modal").modal("hide");
+                    // get the dictionary id  of the row
+                    var dictionaryId = $(tr).data("id");
+                    $.ajax({
+                        type: "DELETE",
+                        url: "{{ path('dataSettings') }}/" + dictionaryId,
+                        dataType: "json",
+                        success: function (response) {
+                            if (response.code === 200) {
+                                var dictionaryLabel = $(tr).data("dictlabel");
+                                var dictionaryName = $(tr).data("dictname");
+                                var alertMsg = 'Configuration "' + dictionaryLabel + ' (' + dictionaryName + ')" deleted.';
+                                sessionStorage.setItem("add-config-success", alertMsg);
+                                location.reload();
+                            } else {
+                                showAlert(response.description, "alert alert-danger");
+                            }
+                        },
+                        error: function (response) {
+                            if (response.status === 401 || response.status === 405) {
+                                window.location.href = "{{ path('logout') }}";
+                            }
+                        },
+                        failure: function (errMsg) {
+                            alert("error!");
+                        }
+                    });
+                });
+            })();
+
+
+
+    </script>
+{% endblock %}
+{# scripts #}
