@@ -31,6 +31,7 @@
 {% endblock %}
 {# helps #}
 {% block content %}
+    {% set canManageApps = is_granted('ROLE_APPS') or is_granted('ROLE_APPS.WRITE') %}
     <div class="row">
         <div class="col-12">
             <div id="alert" class="alert-placeholder-cspro alert-margin-cspro">
@@ -67,14 +68,22 @@
                                     <td>{{ app.description}}</td>
                                     <td>{{ app.buildTime | date("D M j Y G:i") }}</td>
                                     <td><a href="{{path('downloadApp',{'appname':app.name})}}"><i class="fas fa-download fa-fw"></i></a></td>
-                                    <td><a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a></td>
+
+                                    <td>
+                                        {% if canManageApps %}
+                                            <a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a>
+                                        {% else %}
+                                            <a href="javascript:;" class="isDisabled" style="color:grey; cursor:not-allowed; pointer-events: none;"><i class="fas fa-trash-alt fa-fw"></i></a>
+                                        {% endif %}
+                                    </td>
+
                                 </tr>
                             {% endfor %}
 
                         </tbody>
                     </table>
                 </div>
-                 </div>                         
+                 </div>
                 <!-- /.table-responsive -->
             </div>
             <!-- /.panel -->

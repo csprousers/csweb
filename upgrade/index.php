@@ -55,11 +55,11 @@ require_once getApiVersionFilePath();
                     if ($dbSchemaVersion == SCHEMA_VERSION) {
                         echo "The database is up to date.";
                     }
-                    /*else if ($dbSchemaVersion >= 7 && $dbSchemaVersion < SCHEMA_VERSION) {
+                    else if ($dbSchemaVersion >= 7 && $dbSchemaVersion < SCHEMA_VERSION) {
                         //turn this back on when the upgrade is available for 8.0 minor releases 
                         echo '<p>The database needs to be upgraded from schema version ' . $dbSchemaVersion . ' to version ' . SCHEMA_VERSION . '</p>';
                         echo '<a href="upgrade.php" class="btn btn-primary pull-left">Upgrade</a>';
-                    }*/else {
+                    }else {
                         $strMsg = '<p>There is no upgrade path available from older versions of CSWeb to CSWeb 8.0.'
                                   . ' To configure CSWeb 8.0 using a new database name, please refer to the steps outlined'
                                   . ' in the <a href="https://www.csprousers.org/help/CSWeb/apache_csweb_setup.html" target="_blank">help documentation</a>';

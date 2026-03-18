@@ -26,13 +26,19 @@ class Choice extends Constraint
     public const TOO_FEW_ERROR = '11edd7eb-5872-4b6e-9f12-89923999fd0e';
     public const TOO_MANY_ERROR = '9bd98e49-211c-433f-8630-fd1c2d0f08c3';
 
-    protected static $errorNames = [
+    protected const ERROR_NAMES = [
         self::NO_SUCH_CHOICE_ERROR => 'NO_SUCH_CHOICE_ERROR',
         self::TOO_FEW_ERROR => 'TOO_FEW_ERROR',
         self::TOO_MANY_ERROR => 'TOO_MANY_ERROR',
     ];
 
+    /**
+     * @deprecated since Symfony 6.1, use const ERROR_NAMES instead
+     */
+    protected static $errorNames = self::ERROR_NAMES;
+
     public $choices;
+    /** @var callable|string|null */
     public $callback;
     public $multiple = false;
     public $strict = true;
@@ -42,32 +48,31 @@ class Choice extends Constraint
     public $multipleMessage = 'One or more of the given values is invalid.';
     public $minMessage = 'You must select at least {{ limit }} choice.|You must select at least {{ limit }} choices.';
     public $maxMessage = 'You must select at most {{ limit }} choice.|You must select at most {{ limit }} choices.';
+    public bool $match = true;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultOption()
+    public function getDefaultOption(): ?string
     {
         return 'choices';
     }
 
     public function __construct(
-        $options = [],
-        array $choices = null,
-        $callback = null,
-        bool $multiple = null,
-        bool $strict = null,
-        int $min = null,
-        int $max = null,
-        string $message = null,
-        string $multipleMessage = null,
-        string $minMessage = null,
-        string $maxMessage = null,
-        $groups = null,
-        $payload = null
+        string|array $options = [],
+        ?array $choices = null,
+        callable|string|null $callback = null,
+        ?bool $multiple = null,
+        ?bool $strict = null,
+        ?int $min = null,
+        ?int $max = null,
+        ?string $message = null,
+        ?string $multipleMessage = null,
+        ?string $minMessage = null,
+        ?string $maxMessage = null,
+        ?array $groups = null,
+        mixed $payload = null,
+        ?bool $match = null,
     ) {
         if (\is_array($options) && $options && array_is_list($options)) {
-            $choices = $choices ?? $options;
+            $choices ??= $options;
             $options = [];
         }
         if (null !== $choices) {
@@ -85,5 +90,6 @@ class Choice extends Constraint
         $this->multipleMessage = $multipleMessage ?? $this->multipleMessage;
         $this->minMessage = $minMessage ?? $this->minMessage;
         $this->maxMessage = $maxMessage ?? $this->maxMessage;
+        $this->match = $match ?? $this->match;
     }
 }

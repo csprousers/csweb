@@ -16,13 +16,20 @@
     <!-- Esri Leaflet and Esri Leaflet Vector -->
     <script src="https://unpkg.com/esri-leaflet/dist/esri-leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet-vector@3/dist/esri-leaflet-vector.js"></script>
-
+    <style>
+        @media (max-width: 575.98px) {  /* Bootstrap sm breakpoint */
+            /* make sure the red alert (#alert) does not show over the zoom map buttons */
+            #alert {
+                margin-left: 50px;
+            }
+        }
+    </style>
 {% endblock %}
 {# resources #}
 {% block nav %}
-    {% if is_granted('ROLE_REPORTS_ALL') == true %}
+    {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_REPORTS') or is_granted('ROLE_REPORTS.READ')) %}
         <li id="sync-report-nav-item" class="nav-item">
-            <a class="nav-link collapsed" href="{{ path('sync-report') }}" 
+            <a class="nav-link collapsed" href="{{ path('sync-report') }}"
                data-toggle="collapse" onclick= {window.location.href="{{ path('sync-report') }}";}>
                 <i class="fas fa-fw fa-table"></i>
                 <span>Sync Report</span>
@@ -35,8 +42,7 @@
                 <span>Map Report</span>
             </a>
              <div id="collapseMapReport" class="collapse show" aria-labelledby="headingTwo" data-parent="#side-menu">
-                <div class="bg-white collapse-inner rounded" id="map-report-dictionaries">
-                </div>
+                <div class="hide-if-empty bg-white collapse-inner rounded" id="map-report-dictionaries"></div>
             </div>
         </li>
     {% endif %}
@@ -215,7 +221,7 @@
                                                                        "coordinates": [parseFloat(point['longitude']), parseFloat(point['latitude'])]
                                                                    },
                                                                    "properties": {
-                                                                       "guid": point["guid"]
+                                                                       "uuid": point["uuid"]
                                                                    }
                                                                });
                                                            });
@@ -241,7 +247,7 @@
                                                update: function (e) {
                                                    //Workaround on firefox , basically the computed size of the map isn't accurate in the beginning
                                                    //Without this code, markers disappear off the bottom too early and tiles won't be loaded at the bottom, either.
-                                                   //It's fixed whenever the window is resized, though. 
+                                                   //It's fixed whenever the window is resized, though.
                                                    //it's only on firefox, and it seems wasteful to run every update, so I've commented it out for now.
                                                    //var mapDiv = document.getElementById("mapid");
                                                    //var mapSize = mymap.getSize();
@@ -262,7 +268,7 @@
                                                    });
                                                    clusters.forEach((cluster) => {
                                                        //var marker = createClusterIcon(cluster, [cluster.geometry.coordinates[1], cluster.geometry.coordinates[0]]).addTo(clusterLayer);
-                                                       if (!(openPopupGuid && cluster.properties.guid == openPopupGuid)) {
+                                                       if (!(openPopupGuid && cluster.properties.uuid == openPopupGuid)) {
                                                            //marker.openPopup();
                                                            createClusterIcon(cluster, [cluster.geometry.coordinates[1], cluster.geometry.coordinates[0]]).addTo(map.clusterLayer);
                                                        }
@@ -423,9 +429,9 @@
                                            {
                                                //marker.bindPopup(createPopupTable(feature.properties));
                                                marker.on('click', handleMarkerClick);
-                                               if (feature.properties.guid)
+                                               if (feature.properties.uuid)
                                                {
-                                                   marker._csproGuid = feature.properties.guid;
+                                                   marker._csproGuid = feature.properties.uuid;
                                                }
                                            }
                                            return marker;
@@ -445,10 +451,10 @@
 
                                    function handleMarkerClick(e) {
                                        var selectedDictionary = ui.getSelectedDictionary().dictionary_name;
-                                       var guid = e.target._csproGuid;
+                                       var uuid = e.target._csproGuid;
                                        $.ajax({
                                            type: "GET",
-                                           url: `{{ path('map-report') }}/marker/${selectedDictionary}/cases/${guid}`,
+                                           url: `{{ path('map-report') }}/marker/${selectedDictionary}/cases/${uuid}`,
                                            dataSrc: ""
                                        }).done((msg) => {
                                            e.target.off('click');
@@ -456,7 +462,7 @@
                                                var props = JSON.parse(msg);
                                                var latLng = e.target.getLatLng();
                                                Object.assign(props, {'Latitude': latLng.lat, 'Longitude': latLng.lng});
-                                               e.target.bindPopup(createPopupTable({guid: guid, props: props}), {maxWidth: "auto"}).openPopup();
+                                               e.target.bindPopup(createPopupTable({uuid: uuid, props: props}), {maxWidth: "auto"}).openPopup();
                                            } catch (e) {
                                                console.log("Error while handling marker click");
                                            }
@@ -494,7 +500,7 @@
                                        }
                                        var pointDataLink = dataDiv.appendChild(document.createElement('a'));
                                        pointDataLink.setAttribute("href", "javascript:void(0);");
-                                       pointDataLink.setAttribute("onclick", `showData('${properties['guid']}');`);
+                                       pointDataLink.setAttribute("onclick", `showData('${properties['uuid']}');`);
                                        pointDataLink.appendChild(document.createTextNode("View Case"));
                                        return dataDiv;
                                    }
@@ -510,7 +516,7 @@
                                            secondarySelector.append('<option value="" selected>Not Filled</option>');
                                            secondarySelector.attr('disabled', '');
                                            primarySelector.empty();
-                                          
+
                                            let firstLevelChoices =  '<option selected value="" style="font-weight: bold;">' + msgJson["firstLevel"]["label"]+ '</option>';
                                            primarySelector.append(firstLevelChoices);
                                            primaryCols.forEach((col) => {
@@ -600,11 +606,11 @@
                                        }).done((map.handleResponse));
                                    }
 
-                                   function showData(guid) {
+                                   function showData(uuid) {
                                        var selectedDictionary = ui.getSelectedDictionary().dictionary_name;
                                        $.ajax({
                                            type: "GET",
-                                           url: `{{ path('map-report') }}/${selectedDictionary}/cases/${guid}`,
+                                           url: `{{ path('map-report') }}/${selectedDictionary}/cases/${uuid}`,
                                            dataSrc: ""
                                        }).done((showModal));
                                    }

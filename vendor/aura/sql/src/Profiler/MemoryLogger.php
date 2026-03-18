@@ -26,7 +26,7 @@ class MemoryLogger extends AbstractLogger
      * @var array
      *
      */
-    protected $messages = [];
+    protected array $messages = [];
 
     /**
      *

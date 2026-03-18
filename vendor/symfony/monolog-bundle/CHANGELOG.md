@@ -1,3 +1,42 @@
+## Unreleased
+
+## 3.11.1 (2025-12-09)
+
+* Fix `rollbar` handler to use `RollbarLogger` with Monolog 2+
+* Fix `monolog.processor` attributes to use consecutive keys
+
+## 3.11.0 (2025-11-27)
+
+* Reorganize files to match the "Reusable Bundles" structure
+* Migrate services configuration to PHP
+* Add `console.interactive_only` flag
+* Add `slack.exclude_fields` and `slackwebhook.exclude_fields` configuration
+* Add a processor to all loggers only when tags do not specify a channel or handler
+* Deprecate abstract `monolog.activation_strategy.not_found` and `monolog.handler.fingers_crossed.error_level_activation_strategy` service definitions
+* Drop support for PHP < 8.1
+* Drop support for Symfony < 6.4
+* Add TelegramBotHandler `topic` support
+* Deprecate `sentry` and `raven` handler, use a `service` handler with [`sentry/sentry-symfony`](https://docs.sentry.io/platforms/php/guides/symfony/logs/) instead
+* Add configuration for Gelf encoders
+* Fix `host` configuration for `elastic_search` handler
+* Add `hosts` configuration for `elastica` handler
+* Add `enabled` option to `handlers` configuration
+* Add `priority` field to `processor` tag
+* Add `mongodb` handler and deprecate `mongo`
+* Add `monolog.formatter.syslog` service definition to format RFC5424-compliant messages
+
+## 3.10.0 (2023-11-06)
+
+* Add configuration support for SamplingHandler
+
+## 3.9.0 (2023-11-06)
+
+* Add support for the `WithMonologChannel` attribute of Monolog 3.5.0 to autoconfigure the `monolog.logger` tag
+* Add support for Symfony 7
+* Remove support for Symfony 4
+* Mark classes as internal when relevant
+* Add support for env placeholders in the `level` option of handlers
+
 ## 3.8.0 (2022-05-10)
 
 * Deprecated ambiguous `elasticsearch` type, use `elastica` instead
@@ -18,7 +57,7 @@
 
 ## 3.7.0 (2021-03-31)
 
-* Use `ActivationStrategy` instead of `actionLevel` when available 
+* Use `ActivationStrategy` instead of `actionLevel` when available
 * Register resettable processors (`ResettableInterface`) for autoconfiguration (tag: `kernel.reset`)
 * Drop support for Symfony 3.4
 * Drop support for PHP < 7.1
@@ -52,7 +91,7 @@
 
 ## 3.3.1 (2018-11-04)
 
-* Fixed compatiblity with Symfony 4.2
+* Fixed compatibility with Symfony 4.2
 
 ## 3.3.0 (2018-06-04)
 

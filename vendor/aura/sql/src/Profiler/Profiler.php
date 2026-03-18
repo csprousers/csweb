@@ -28,7 +28,7 @@ class Profiler implements ProfilerInterface
      * @var array
      *
      */
-    protected $context = [];
+    protected array $context = [];
 
     /**
      *
@@ -37,7 +37,7 @@ class Profiler implements ProfilerInterface
      * @var LoggerInterface
      *
      */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      *
@@ -48,7 +48,7 @@ class Profiler implements ProfilerInterface
      * @see setActive()
      *
      */
-    protected $active = false;
+    protected bool $active = false;
 
     /**
      *
@@ -59,7 +59,7 @@ class Profiler implements ProfilerInterface
      * @see setLogLevel()
      *
      */
-    protected $logLevel = LogLevel::DEBUG;
+    protected string $logLevel = LogLevel::DEBUG;
 
     /**
      *
@@ -70,7 +70,7 @@ class Profiler implements ProfilerInterface
      * @see setLogFormat()
      *
      */
-    protected $logFormat = "{function} ({duration} seconds): {statement} {backtrace}";
+    protected string $logFormat = "{function} ({duration} seconds): {statement} {backtrace}";
 
     /**
      *

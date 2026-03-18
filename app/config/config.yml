@@ -3,6 +3,7 @@ imports:
     - { resource: './api/parameters.php' }
     - { resource: security.yml }
     - { resource: services.yml }
+    - { resource: twig.yml }
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
@@ -34,14 +35,3 @@ framework:
     assets: ~
     php_errors:
         log: true
-
-# Twig Configuration
-twig:
-    debug: '%kernel.debug%'
-    strict_variables: '%kernel.debug%'
-    exception_controller: null
-    globals:
-        csproVersion: '%cspro_version%'
-        maxMapPoints: '%csweb_max_map_points%'
-        apiUrl: '%cspro_rest_api_url%'
-

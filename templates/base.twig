@@ -9,7 +9,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
-
+        <meta name="csrf-token" content="{{ csrf_token('csweb_dashboard_token') }}">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';img-src 'self' data:;object-src 'none'; form-action 'self'; base-uri 'self';">
         <link rel='icon' href={{asset('dist/img/favicon.ico')}} type='image/x-icon'/>
 
         <title>CSWeb</title>
@@ -33,19 +34,16 @@
         <div id="wrapper">
 
             <ul class="navbar-nav navbar-cspro sidebar sidebar-dark accordion" id="side-menu">
-                <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                    <i class="fas fa-bars"></i>
-                </button>
                 <a class="sidebar-brand d-flex align-items-center justify-content-center navbar-cspro" href="{{ path('dashboard') }}">
                     <img src={{asset('dist/img/logo_silver.png')}} class="icon" >
-                    <p class="navbar navbar-version">CSWeb {{ csproVersion }}</p>
+                    <p class="navbar navbar-version">CSWeb {{ csproVersion }} (alpha)</p>
                 </a>
                 <!-- Divider -->
                 <hr class="sidebar-divider my-0">
 
                 <!-- /.navbar-header -->
 
-                {% if is_granted('ROLE_DATA_ALL') == true %}
+                {% if is_granted('ROLE_LOGIN') %}
                     <li id="data-nav-item" class="nav-item">
                         <a class="nav-link" href="{{ path('dashboard') }}">
                             <i class="fas fa-fw fa-database"></i>
@@ -53,9 +51,9 @@
                     </li>
                 {% endif %}
                 {% block nav %}
-                    {% if is_granted('ROLE_REPORTS_ALL') == true %}
+                    {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_REPORTS') or is_granted('ROLE_REPORTS.READ')) %}
                         <li id="sync-report-nav-item" class="nav-item">
-                            <a class="nav-link collapsed" href="{{ path('sync-report') }}" 
+                            <a class="nav-link collapsed" href="{{ path('sync-report') }}"
                                data-toggle="collapse" onclick={window.location.href="{{ path('sync-report') }}";}>
                                 <i class="fas fa-fw fa-table"></i>
                                 <span>Sync Report</span>
@@ -70,26 +68,28 @@
                     {% endif %}
                 {% endblock %}
                 {# nav #}
-                {% if is_granted('ROLE_APPS_ALL') == true %}
+                {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_APPS') or is_granted('ROLE_APPS.READ')) %}
                     <li id="apps-nav-item" class="nav-item">
                         <a class="nav-link" href="{{ path('apps') }}">
                             <i class="fas fa-fw fa-desktop"></i>
                             <span>Apps</span></a>
                     </li>
+                {% endif %}
+                {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_FILES') or is_granted('ROLE_FILES.READ')) %}
                     <li id="files-nav-item" class="nav-item">
                         <a class="nav-link" href="{{ path('files') }}">
                             <i class="fas fa-fw fa-file"></i>
                             <span>Files</span></a>
                     </li>
                 {% endif %}
-                {% if is_granted('ROLE_USERS_ALL') == true %}
+                {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_USERS') or is_granted('ROLE_USERS.READ'))%}
                     <li id="users-nav-item" class="nav-item">
                         <a class="nav-link" href="{{ path('users') }}">
                             <i class="fas fa-fw fa-users"></i>
                             <span>Users</span></a>
                     </li>
                 {% endif %}
-                {% if is_granted('ROLE_ROLES_ALL') == true %}
+                {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_ROLES') or is_granted('ROLE_ROLES.READ')) %}
                     <li id="roles-nav-item" class="nav-item">
                         <a class="nav-link" href="{{ path('roles') }}">
                             <i class="fas fa-fw fa-user"></i>
@@ -97,9 +97,9 @@
                     </li>
                 {% endif %}
                 {% block navSettings %}
-                {% if is_granted('ROLE_SETTINGS_ALL') == true %}
+                {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_SETTINGS') or is_granted('ROLE_SETTINGS.READ')) %}
                     <li id="settings-nav-item" class="nav-item">
-                        <a class="nav-link collapsed" href="{{ path('dataSettings') }}" 
+                        <a class="nav-link collapsed" href="{{ path('dataSettings') }}"
                            data-toggle="collapse" onclick={window.location.href="{{ path('dataSettings') }}";}>
                             <i class="fas fa-fw fa-cog"></i>
                         <span>Settings</span>
@@ -145,6 +145,13 @@
 
     <!-- jQuery -->
     <script src={{asset('bower_components/jquery/jquery.min.js')}}></script>
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+    </script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src={{asset('bower_components/bootstrap/js/bootstrap.bundle.min.js')}}></script>
@@ -171,7 +178,7 @@
             }
 
             $(document).ready(function () {
-
+             
                 // Delete app functionality
                 (function () {
                     var tr;
@@ -206,9 +213,17 @@
                             error: function (response) {
                                 if (response.status === 405) {
                                     window.location.href = "{{ path('logout') }}";
-                                } else {
-                                    var alertMsg = "Failed to delete application " + appName;
-                                    showAlert(alertMsg, "alert alert-danger");
+                                }
+                                else {
+                                    var message = "Failed to delete application " + appName;
+                                    try {
+                                        var errResponse = JSON.parse(response.responseText);
+                                        message = errResponse.message || errResponse.error || response.responseText;
+                                    } catch(e) {
+                                        // Not valid JSON, use raw response or default message
+                                        message = response.responseText || "Unknown error occurred. Failed to delete application " + appName;
+                                    }
+                                    ui.showAlert(message, "alert alert-danger");
                                 }
                             },
                             failure: function (errMsg) {
@@ -229,7 +244,7 @@
 
             });
         </script>
-    {% endblock %} 
+    {% endblock %}
     {# script #}
 
     <div id="mainSpinner" class="spinner"><!-- Place at bottom of page --></div>

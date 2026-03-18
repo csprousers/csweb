@@ -10,11 +10,16 @@ imports:
 monolog:
     channels: ['command']
     handlers:
-        main:
+         # Use fingers_crossed to buffer until error level reaches
+        error_buffer:
             type: fingers_crossed
             action_level: error
-            handler: nested
-        nested:
+            handler: all_logging
+         # Group handler to direct logs to multiple destinations. Order file logging first to ensure error is logged even if db is not available
+        all_logging:
+            type: group
+            members: [file_logging, console, database_logging]
+        file_logging:
             type: stream
             path: '%kernel.logs_dir%/ui.log'
             level: '%csweb_log_level%'
@@ -22,11 +27,10 @@ monolog:
         console:
             type: console
             process_psr_3_messages: false
-        db:
+        database_logging:
             type: service
             id: cspro_monolog_handler
             channels: ['!command']
-            
         blob_break_logging:
             type: rotating_file
             path: '%kernel.logs_dir%/cases_process.log'

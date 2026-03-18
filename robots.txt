@@ -1,5 +1,9 @@
 # www.robotstxt.org/
 # www.google.com/support/webmasters/bin/answer.py?hl=en&answer=156449
 
+# This configuration tells all crawlers (User-agent: *)
+# not to access any pages on your site (Disallow: /).
+# Note, however, that this is a polite request and relies on
+# crawlers following the robots.txt rules, which reputable search engines do.
 User-agent: *
-Disallow:
+Disallow: /

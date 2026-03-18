@@ -6,54 +6,54 @@
 
     "autoload": {
         "psr-4": {
-            "AppBundle\\": "src/AppBundle"
+            "App\\": "src/"
         },
-        "classmap": [ "app/AppKernel.php", "app/AppCache.php", "app/api/ApiKernel.php" ]
+        "classmap": [ "app/AppKernel.php", "app/AppCache.php", "app/api/ApiKernel.php", "maps/server.php"]
     },
     "autoload-dev": {
         "psr-4": { "Tests\\": "tests/" },
         "files": [ "vendor/symfony/var-dumper/Resources/functions/dump.php" ]
     },
     "require": {
-        "php": ">=8.0",
-        "aura/sql": "^4.0",
-        "bshaffer/oauth2-server-php": "^1.13",
-        "doctrine/dbal": "^3.5",
-        "guzzlehttp/guzzle": "^7.5",
+        "php": ">=8.1",
+        "aura/sql": "^5.0",
+        "bshaffer/oauth2-server-php": "^1.14",
+        "doctrine/dbal": "^3.9",
+        "guzzlehttp/guzzle": "^7.9",
         "illuminate/support": "^8.83",
-        "incenteev/composer-parameter-handler": "^2.1",
-        "justinrainbow/json-schema": "^5.2",
-        "league/flysystem": "^2.5",
-        "monolog/monolog": "^2.8",
+        "incenteev/composer-parameter-handler": "^2.2",
+        "justinrainbow/json-schema": "^6.0",
+        "league/flysystem": "^3.28",
+        "monolog/monolog": "^3.7",
         "nelexa/buffer": "^1.3",
-        "nesbot/carbon": "^2.63",
-        "salsify/json-streaming-parser": "^8.2",
-        "symfony/asset": "^5.4",
-        "symfony/console": "^5.4",
-        "symfony/debug-bundle": "^5.4",
-        "symfony/form": "^5.4",
-        "symfony/framework-bundle": "^5.4",
-        "symfony/http-foundation": "^5.4",
-        "symfony/http-kernel": "^5.4",
-        "symfony/lock": "^5.4",
-        "symfony/mailer": "^5.4",
+        "nesbot/carbon": "^2.72",
+        "salsify/json-streaming-parser": "^8.3",
+        "symfony/asset": "^6.4",
+        "symfony/console": "^6.4",
+        "symfony/debug-bundle": "^6.4",
+        "symfony/form": "^6.4",
+        "symfony/framework-bundle": "^6.4",
+        "symfony/http-foundation": "^6.4",
+        "symfony/http-kernel": "^6.4",
+        "symfony/lock": "^6.4",
+        "symfony/mailer": "^6.4",
         "symfony/monolog-bundle": "^3.8",
         "symfony/polyfill-apcu": "^1.26",
-        "symfony/process": "^5.4",
-        "symfony/routing": "^5.4",
-        "symfony/security-bundle": "^5.4",
-        "symfony/twig-bridge": "^5.4",
-        "symfony/twig-bundle": "^5.4",
-        "symfony/validator": "^5.4",
-        "symfony/web-profiler-bundle": "^5.4",
-        "twig/twig": "^3.4",
-        "vitexsoftware/phpunit-skeleton-generator": "*"
+        "symfony/process": "^6.4",
+        "symfony/routing": "^6.4",
+        "symfony/security-bundle": "^6.4",
+        "symfony/twig-bridge": "^6.4",
+        "symfony/twig-bundle": "^6.4",
+        "symfony/validator": "^6.4",
+        "twig/twig": "^3.14",
+        "vitexsoftware/phpunit-skeleton-generator": "^2.1"
     },
     "require-dev": {
-        "symfony/browser-kit": "^5.4",
-        "symfony/css-selector": "^5.4",
-        "symfony/phpunit-bridge": "^4",
-        "symfony/test-pack": "^1.0"
+        "symfony/browser-kit": "^6.4",
+        "symfony/css-selector": "^6.4",
+        "symfony/phpunit-bridge": "^6.4",
+        "symfony/test-pack": "^1.0",
+        "symfony/web-profiler-bundle": "*"
     },
     "scripts": {
         "symfony-scripts": [
@@ -70,7 +70,7 @@
     },
     "config": {
         "platform": {
-            "php": "8.0"
+            "php": "8.1"
         },
         "sort-packages": true
     },
@@ -86,10 +86,10 @@
         },
         "branch-alias": {
             "dev-master": "3.4-dev"
-		},
-		"symfony": {
-			"allow-contrib": false,
-			"require": "5.4.*"
-		}
+        },
+        "symfony": {
+            "allow-contrib": false,
+            "require": "6.4.*"
+        }
     }
 }

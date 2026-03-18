@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Mailer\Transport\Smtp\Auth;
 
+use Symfony\Component\Mailer\Exception\InvalidArgumentException;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 
 /**
@@ -26,8 +27,6 @@ class CramMd5Authenticator implements AuthenticatorInterface
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @see https://www.ietf.org/rfc/rfc4954.txt
      */
     public function authenticate(EsmtpTransport $client): void
@@ -35,14 +34,18 @@ class CramMd5Authenticator implements AuthenticatorInterface
         $challenge = $client->executeCommand("AUTH CRAM-MD5\r\n", [334]);
         $challenge = base64_decode(substr($challenge, 4));
         $message = base64_encode($client->getUsername().' '.$this->getResponse($client->getPassword(), $challenge));
-        $client->executeCommand(sprintf("%s\r\n", $message), [235]);
+        $client->executeCommand(\sprintf("%s\r\n", $message), [235]);
     }
 
     /**
      * Generates a CRAM-MD5 response from a server challenge.
      */
-    private function getResponse(string $secret, string $challenge): string
+    private function getResponse(#[\SensitiveParameter] string $secret, string $challenge): string
     {
+        if (!$secret) {
+            throw new InvalidArgumentException('A non-empty secret is required.');
+        }
+
         if (\strlen($secret) > 64) {
             $secret = pack('H32', md5($secret));
         }

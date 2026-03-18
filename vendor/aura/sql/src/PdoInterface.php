@@ -70,7 +70,7 @@ interface PdoInterface
      * @see http://php.net/manual/en/pdo.exec.php
      *
      */
-    public function exec(string $statement);
+    public function exec(string $statement): int|false;
 
     /**
      *
@@ -81,7 +81,7 @@ interface PdoInterface
      * @return bool|int|string|array|null The value for the attribute.
      *
      */
-    public function getAttribute(int $attribute);
+    public function getAttribute(int $attribute): bool|int|string|array|null;
 
     /**
      *
@@ -106,7 +106,7 @@ interface PdoInterface
      * @see http://php.net/manual/en/pdo.lastinsertid.php
      *
      */
-    public function lastInsertId(?string $name = null);
+    public function lastInsertId(?string $name = null): string|false;
 
     /**
      *
@@ -121,7 +121,7 @@ interface PdoInterface
      *
      * @see http://php.net/manual/en/pdo.prepare.php
      */
-    public function prepare(string $query, array $options = []);
+    public function prepare(string $query, array $options = []): PDOStatement|false;
 
     /**
      *
@@ -129,14 +129,16 @@ interface PdoInterface
      *
      * @param string $query The SQL statement to prepare and execute.
      *
-     * @param mixed ...$fetch Optional fetch-related parameters.
+     * @param int|null $fetchMode
+     *
+     * @param mixed ...$fetch_mode_args Optional fetch-related parameters.
      *
      * @return \PDOStatement|false
      *
      * @see http://php.net/manual/en/pdo.query.php
      *
      */
-    public function query(string $query, ...$fetch);
+    public function query(string $query, ?int $fetchMode = null, ...$fetch_mode_args): PDOStatement|false;
 
     /**
      *
@@ -151,7 +153,7 @@ interface PdoInterface
      * @see http://php.net/manual/en/pdo.quote.php
      *
      */
-    public function quote($value, int $type = PDO::PARAM_STR);
+    public function quote(string|int|array|float|null $value, int $type = PDO::PARAM_STR): string|false;
 
     /**
      *
@@ -175,7 +177,7 @@ interface PdoInterface
      * @return bool
      *
      */
-    public function setAttribute($attribute, $value);
+    public function setAttribute(int $attribute, mixed $value): bool;
 
     /**
      *
@@ -184,5 +186,5 @@ interface PdoInterface
      * @return array
      *
      */
-    public static function getAvailableDrivers();
+    public static function getAvailableDrivers(): array;
 }

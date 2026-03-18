@@ -1,5 +1,15 @@
 /*--- CSWeb -----------------------------------------------------------------*/
 
+/*--- css classes that override styles of sb-admin-2.css ---*/
+
+.modal-footer.modal-footer-spacing-and-alignment {
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+/*--- END OF css classes that override styles of sb-admin-2.css ---*/
+
 .navbar-cspro {
     position: relative;
     background-color: #072141;
@@ -68,6 +78,8 @@
 .sidebar .sidebar-brand  {
     height: 4.375rem;
     text-transform: none;
+    flex-wrap: wrap;
+    height: fit-content;
 }
 
 .icon  {
@@ -134,7 +146,7 @@ our animation centered, and no-repeating */
     left:       0;
     height:     100%;
     width:      100%;
-    background: rgba( 255, 255, 255, .8 )
+    background: rgba( 255, 255, 255, .3 )
         url('../img/ajax-loader.gif')
         50% 50%
         no-repeat;

@@ -53,7 +53,7 @@ require_once getApiVersionFilePath();
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  UNIQUE KEY `name` (`name`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_cspro_apps BEFORE INSERT ON `cspro_apps` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_apps BEFORE INSERT ON `cspro_apps` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
                 $pdo->exec($sql);
                 $sql = "UPDATE `cspro_config` SET `value`=2 where `name` = 'schema_version'";
@@ -123,7 +123,7 @@ EOT;
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Permissions Table';
-			CREATE TRIGGER tr_cspro_permissions BEFORE INSERT ON `cspro_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_permissions BEFORE INSERT ON `cspro_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
                     $pdo->exec($sql);
@@ -135,8 +135,8 @@ EOT;
                     (3,'users_all'),
                     (4,'roles_all'),
                     (5,'reports_all'),
-                    (6,'dictionary_sync_upload'),
-                    (7,'dictionary_sync_download'),
+                    (6,'dictionary_write'),
+                    (7,'dictionary_read'),
                     (8,'settings_all'),
                     ;
 EOT;
@@ -151,7 +151,7 @@ EOT;
 			   CONSTRAINT `cspro_role_id_constraint` FOREIGN KEY (role_id) REFERENCES cspro_roles(id) ON DELETE CASCADE,
                            CONSTRAINT `cspro_permission_id_constraint` FOREIGN KEY (permission_id) REFERENCES cspro_permissions(id) ON DELETE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Role Permissions Table';
-			CREATE TRIGGER tr_cspro_role_permissions BEFORE INSERT ON `cspro_role_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_role_permissions BEFORE INSERT ON `cspro_role_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
                     $pdo->exec($sql);
@@ -166,7 +166,7 @@ EOT;
                            CONSTRAINT `cspro_role_dictionary_role_id_constraint` FOREIGN KEY (role_id) REFERENCES cspro_roles(id) ON DELETE CASCADE,
                            CONSTRAINT `cspro_role_dictionary_id_constraint` FOREIGN KEY (dictionary_id) REFERENCES cspro_dictionaries(id) ON DELETE CASCADE,
                            CONSTRAINT `cspro_role_dictionary_permission_id_constraint` FOREIGN KEY (permission_id) REFERENCES cspro_permissions(id) ON DELETE CASCADE			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Role Dictionary Permissions Table';
-			CREATE TRIGGER tr_cspro_role_dictionary_permissions BEFORE INSERT ON `cspro_role_dictionary_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_role_dictionary_permissions BEFORE INSERT ON `cspro_role_dictionary_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
                     $pdo->exec($sql);
@@ -252,9 +252,40 @@ EOT;
                     throw $e;
                 }
             }
+            
+            function schema7To8($pdo) {
+                try {
+                    $addNewColumns = array("dictionary_key_structure");
+                    //add dictionary_key_structure to cspro_dictionaries and upgrade schema
+                    //Read out actual columns
+                    $addedFields = array();
+                    $rs = $pdo->query('SELECT * FROM `cspro_dictionaries` LIMIT 0');
+                    for ($i = 0; $i < $rs->columnCount(); $i++) {
+                        $col = $rs->getColumnMeta($i);
+                        $colName = strtolower($col['name']);
+                        if (in_array($colName, $addNewColumns)) {
+                            $addedFields[] = $colName;
+                        }
+                    }
+                    $columnsToAdd = array_diff($addNewColumns, $addedFields);
+                    //Add columns
+                    if (!empty($columnsToAdd)) {
+                        foreach ($columnsToAdd as $c) {
+                            if (strcasecmp($c, "dictionary_key_structure") == 0) {
+                                $pdo->exec('ALTER TABLE `cspro_dictionaries` add `' . $c . '` TEXT COLLATE utf8mb4_unicode_ci AFTER `dictionary_full_content`;');
+                            }
+                        }
+                    }
+                    //update the schema version 
+                    $sql = "UPDATE `cspro_config` SET `value`=8 where `name` = 'schema_version'";
+                    $pdo->exec($sql);
+                } catch (\Exception $e) {
+                    throw $e;
+                }
+            }
 
             $migrateFuncs = array(
-                5 => 'schema5To6'
+                7 => 'schema7To8'
             );
 
             // Check if app was already configured

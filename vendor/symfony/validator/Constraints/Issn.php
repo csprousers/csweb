@@ -30,7 +30,7 @@ class Issn extends Constraint
     public const INVALID_CASE_ERROR = '7b6dd393-7523-4a6c-b84d-72b91bba5e1a';
     public const CHECKSUM_FAILED_ERROR = 'b0f92dbc-667c-48de-b526-ad9586d43e85';
 
-    protected static $errorNames = [
+    protected const ERROR_NAMES = [
         self::TOO_SHORT_ERROR => 'TOO_SHORT_ERROR',
         self::TOO_LONG_ERROR => 'TOO_LONG_ERROR',
         self::MISSING_HYPHEN_ERROR => 'MISSING_HYPHEN_ERROR',
@@ -39,17 +39,22 @@ class Issn extends Constraint
         self::CHECKSUM_FAILED_ERROR => 'CHECKSUM_FAILED_ERROR',
     ];
 
+    /**
+     * @deprecated since Symfony 6.1, use const ERROR_NAMES instead
+     */
+    protected static $errorNames = self::ERROR_NAMES;
+
     public $message = 'This value is not a valid ISSN.';
     public $caseSensitive = false;
     public $requireHyphen = false;
 
     public function __construct(
-        array $options = null,
-        string $message = null,
-        bool $caseSensitive = null,
-        bool $requireHyphen = null,
-        array $groups = null,
-        $payload = null
+        ?array $options = null,
+        ?string $message = null,
+        ?bool $caseSensitive = null,
+        ?bool $requireHyphen = null,
+        ?array $groups = null,
+        mixed $payload = null,
     ) {
         parent::__construct($options, $groups, $payload);
 

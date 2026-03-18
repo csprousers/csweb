@@ -6,7 +6,7 @@ require __DIR__.'/vendor/autoload.php';
 if (PHP_VERSION_ID < 70000) {
     include_once __DIR__.'./var/bootstrap.php.cache';
 }
-if (file_exists('./src/AppBundle/config.php') === false)  {
+if (file_exists('./src/config.php') === false)  {
     header('Location:' . './setup/');
     exit();
 }

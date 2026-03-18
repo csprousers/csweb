@@ -1,0 +1,9 @@
+# Twig Configuration
+twig:
+    debug: '%kernel.debug%'
+    strict_variables: '%kernel.debug%'
+    exception_controller: null
+    globals:
+        csproVersion: '%cspro_version%'
+        maxMapPoints: '%csweb_max_map_points%'
+        apiUrl: '%cspro_rest_api_url%'

@@ -3,6 +3,17 @@
 {% block resources %}
     <!-- DataTables -->
     <link href={{asset('bower_components/datatables/media/css/jquery.dataTables.min.css')}}>
+    <style>
+       @media (max-width: 767.98px) {  /* Bootstrap md breakpoint (below md) */
+            #table-responsive_length {
+                text-align: left;
+            }
+            #table-responsive_filter {
+                text-align: left;
+                margin-left: -12px;
+            }
+        }
+    </style>
 {% endblock %}
 {% block modal %}
     <!-- Modal Content -->
@@ -86,7 +97,7 @@
                         <div class="form-group row has-feedback">
                             <label class="col-sm-3 control-label" for="add-password">Password</label>
                             <div class="col-sm-9">
-                                <input type="password" class="form-control" name="password" id="add-password" data-minlength="8" 
+                                <input type="password" class="form-control" name="password" id="add-password" data-minlength="8"
                                        data-minlength-error="Password must be at least 8 characters." placeholder="Password" required>
                                 <div class="help-block with-errors"></div>
                             </div>
@@ -96,7 +107,7 @@
                         <div class="form-group row has-feedback">
                             <label class="col-sm-3 control-label" for="add-password-confirm"></label>
                             <div class="col-sm-9">
-                                <input type="password" class="form-control" name="password-confirm" id="add-password-confirm" data-match="#add-password" 
+                                <input type="password" class="form-control" name="password-confirm" id="add-password-confirm" data-match="#add-password"
                                        data-match-error="Passwords don't match." placeholder="Confirm Password" required>
                                 <div class="help-block with-errors"></div>
                             </div>
@@ -104,13 +115,11 @@
                         </div>
 
                         <!-- form-group -->
-                        <div class="form-group row">
-                            <div class="col-sm-9 offset-sm-3">
+                            <div class="modal-footer modal-footer-spacing-and-alignment">
                                 <button type="submit" class="btn btn-primary" id="add-button">Add</button>
                                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                             </div>
                             <!-- col-sm-9 -->
-                        </div>
                         <!-- form-group -->
                     </form>
                     <!-- form-horizontal -->
@@ -194,11 +203,11 @@
                             <!-- col-sm-9 -->
                         </div>
                         <!-- form-group -->
-                        <div class="hidden" id="edit-password-wrapper">
+                        <div class="d-none" id="edit-password-wrapper">
                             <div class="form-group row has-feedback">
                                 <label class="col-sm-3 control-label" for="edit-password">Password</label>
                                 <div class="col-sm-9">
-                                    <input type="password" class="form-control" name="password" id="edit-password" data-minlength="8" 
+                                    <input type="password" class="form-control" name="password" id="edit-password" data-minlength="8"
                                            data-minlength-error="Password must be at least 8 characters." placeholder="Password" required>
                                     <div class="help-block with-errors"></div>
                                 </div>
@@ -208,7 +217,7 @@
                             <div class="form-group row has-feedback">
                                 <label class="col-sm-3 control-label" for="edit-password-confirm"></label>
                                 <div class="col-sm-9">
-                                    <input type="password" class="form-control" name="password-confirm" id="edit-password-confirm" data-match="#edit-password" 
+                                    <input type="password" class="form-control" name="password-confirm" id="edit-password-confirm" data-match="#edit-password"
                                            data-match-error="Passwords don't match." placeholder="Confirm Password" required>
                                     <div class="help-block with-errors"></div>
                                 </div>
@@ -263,7 +272,7 @@
             <div class="modal-content">
                 <div class="modal-header"><h4>Processing....</h4>
                     <div class="progress">
-                        <div style="width:0%" class="progress-bar progress-bar-striped progress-bar-animated" 
+                        <div style="width:0%" class="progress-bar progress-bar-striped progress-bar-animated"
                              role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="2">
                             <div class="progressText">0% Complete</div>
                         </div>
@@ -300,7 +309,7 @@
                                     <span class="btn btn-primary">
                                         Browse&hellip; <input type="file" id="import-file" style="display: none;" accept=".csv">
                                     </span>
-                                </label>   
+                                </label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -340,6 +349,7 @@
 {% endblock %}
 {# helps #}
 {% block content %}
+    {% set canManageUsers = is_granted('ROLE_USERS') or is_granted('ROLE_USERS.WRITE') %}
     <div class="row">
         <div class="col-12">
             <div id="alert" class='alert-placeholder-cspro alert-margin-cspro' ></div>
@@ -348,14 +358,14 @@
         <!-- /.col-12 -->
     </div>
     <!-- /.row -->
-    <div class="row">
+    <div class="row" id="users-content" data-can-manage-users="{{ canManageUsers ? 'true' : 'false' }}">
         <div class="col-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-2">
                     <i class="fas fa-users fa-fw"></i> Users
                     <div class="btn-toolbar float-right">
-                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="addUserButton">Add User</button>
-                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="importUserButton">Import Users</button>
+                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="addUserButton" {% if not canManageUsers %}disabled{% endif %}>Add User</button>
+                        <button type="button" class="btn btn-primary btn-sm float-right m-1" id="importUserButton" {% if not canManageUsers %}disabled{% endif %}>Import Users</button>
                     </div>
 
                 </div>
@@ -411,6 +421,7 @@
             $("#users-nav-item").addClass('nav-item active');
             $('[data-toggle="popover"]').popover();
             $.fn.dataTable.ext.errMode = 'none'; //user custom error processing for the datatable to handle redirects
+            const canManageUsers = document.getElementById('users-content').dataset.canManageUsers === 'true';
             var userTable = $('#table-responsive')
                     .on('xhr.dt', function (e, settings, json, xhr) {
                         if (xhr.status === 401 || xhr.status === 405) {
@@ -462,11 +473,16 @@
                     },
                     {"data": "email"},
                     {"data": "phone"},
-                    {"defaultContent": '<a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a>'},
+                    {"render": function (data, type, row) {
+                            if (canManageUsers || '{{userinfo}}' === row['username'])
+                                return '<a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a>';
+                            else
+                                return '<a href="javascript:;" class="isDisabled" style="color:grey; cursor:default;"><i class="fas fa-pencil-alt fa-fw"></i></a>';
+                        }
+                    },
                     {"render": function (data, type, row) {
                             var retVal;
-                            if ('{{userinfo}}' == row['username'])
-                                //retVal = null;
+                            if ('{{userinfo}}' == row['username'] || canManageUsers === false)
                                 retVal = '<a href="javascript:;" class="isDisabled" style="color:grey; cursor:default;"><i class="fas fa-trash-alt fa-fw"></i></a>';
                             else
                                 retVal = '<a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a>';
@@ -499,7 +515,7 @@
                 // $("#import-file-name").val(files.name);
             });
 
-            //import the selected csv file 
+            //import the selected csv file
             $("#import-button").on("click", function (event) {
                 event.preventDefault();
                 var $modal = $("#import-user-modal");
@@ -565,6 +581,7 @@
                             user[$(this).attr("name")] = $(this).val();
                     });
                     user['role'] = $('#add-user-role').val();
+                    user.role = parseInt(user.role, 10);
                     $modal.modal("hide");
                     $.ajax({
                         type: "POST",
@@ -664,7 +681,7 @@
                     // Validate, so previous warnings persist
                     form.validator("validate");
                     // Don't validate password fields yet
-                    passwordWrapper.removeClass("hidden");
+                    passwordWrapper.removeClass("d-none");
                     form.validator("update");
                     $("#edit-password").focus();
                     isPasswordFieldsShown = true;
@@ -673,7 +690,7 @@
                 var toggleOff = function () {
                     passwordField.val("");
                     passwordConfirmField.val("");
-                    passwordWrapper.addClass("hidden");
+                    passwordWrapper.addClass("d-none");
                     form.validator("update");
                     $("#edit-first-name").focus();
                     isPasswordFieldsShown = false;
@@ -687,7 +704,7 @@
                 var off = function () {
                     passwordField.val("");
                     passwordConfirmField.val("");
-                    passwordWrapper.addClass("hidden");
+                    passwordWrapper.addClass("d-none");
                     form.unbind("submit");
                     form.validator("destroy");
                     isPasswordFieldsShown = false;
@@ -723,6 +740,7 @@
                         }
                     });
                     user['role'] = $("#edit-user-role").val();
+                    user.role = parseInt(user.role, 10);
                     $modal.modal("hide");
                     $.ajax({
                         type: "PUT",
@@ -833,7 +851,7 @@
                 var authToken = '{{ accessToken }}';
                 reader.onload = function (e) {
                     var rawBytes = e.target.result;
-                    //create a html request to import users by directly calling the rest api users url 
+                    //create a html request to import users by directly calling the rest api users url
                     var xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = function (evt) {
                         if (xhr.readyState === 4) {//done
@@ -904,6 +922,7 @@
                     xhr.open('POST', usersAPIURL, true);
 
                     xhr.setRequestHeader('Authorization', 'Bearer ' + authToken);
+                    xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
                     xhr.setRequestHeader('Content-Type', 'text/plain');
                     xhr.setRequestHeader('Accept', 'application/json');
                     if ($('#import-header-flag').is(':checked')) {

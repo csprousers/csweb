@@ -1,5 +1,5 @@
 controllers:
-    resource: ../../../src/AppBundle/Controller/api
+    resource: ../../../src/Controller/api
     type: annotation
 kernel:
     resource: ../../api/ApiKernel.php

@@ -30,7 +30,7 @@ class AddSecurityVotersPass implements CompilerPassInterface
     use PriorityTaggedServiceTrait;
 
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function process(ContainerBuilder $container)
     {
@@ -52,11 +52,11 @@ class AddSecurityVotersPass implements CompilerPassInterface
             $class = $container->getParameterBag()->resolveValue($definition->getClass());
 
             if (!is_a($class, VoterInterface::class, true)) {
-                throw new LogicException(sprintf('"%s" must implement the "%s" when used as a voter.', $class, VoterInterface::class));
+                throw new LogicException(\sprintf('"%s" must implement the "%s" when used as a voter.', $class, VoterInterface::class));
             }
 
             if ($debug) {
-                $voterServices[] = new Reference($debugVoterServiceId = 'debug.security.voter.'.$voterServiceId);
+                $voterServices[] = new Reference($debugVoterServiceId = '.debug.security.voter.'.$voterServiceId);
 
                 $container
                     ->register($debugVoterServiceId, TraceableVoter::class)

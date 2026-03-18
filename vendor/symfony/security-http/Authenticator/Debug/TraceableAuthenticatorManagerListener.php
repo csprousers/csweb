@@ -16,17 +16,18 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\Security\Http\Firewall\AbstractListener;
 use Symfony\Component\Security\Http\Firewall\AuthenticatorManagerListener;
 use Symfony\Component\VarDumper\Caster\ClassStub;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Decorates the AuthenticatorManagerListener to collect information about security authenticators.
  *
  * @author Robin Chalas <robin.chalas@gmail.com>
  */
-final class TraceableAuthenticatorManagerListener extends AbstractListener
+final class TraceableAuthenticatorManagerListener extends AbstractListener implements ResetInterface
 {
-    private $authenticationManagerListener;
-    private $authenticatorsInfo = [];
-    private $hasVardumper;
+    private AuthenticatorManagerListener $authenticationManagerListener;
+    private array $authenticatorsInfo = [];
+    private bool $hasVardumper;
 
     public function __construct(AuthenticatorManagerListener $authenticationManagerListener)
     {
@@ -50,9 +51,11 @@ final class TraceableAuthenticatorManagerListener extends AbstractListener
         foreach ($request->attributes->get('_security_skipped_authenticators') as $skippedAuthenticator) {
             $this->authenticatorsInfo[] = [
                 'supports' => false,
-                'stub' => $this->hasVardumper ? new ClassStub(\get_class($skippedAuthenticator)) : \get_class($skippedAuthenticator),
+                'stub' => $this->hasVardumper ? new ClassStub($skippedAuthenticator::class) : $skippedAuthenticator::class,
                 'passport' => null,
                 'duration' => 0,
+                'authenticated' => null,
+                'badges' => [],
             ];
         }
 
@@ -77,5 +80,10 @@ final class TraceableAuthenticatorManagerListener extends AbstractListener
     public function getAuthenticatorsInfo(): array
     {
         return $this->authenticatorsInfo;
+    }
+
+    public function reset(): void
+    {
+        $this->authenticatorsInfo = [];
     }
 }

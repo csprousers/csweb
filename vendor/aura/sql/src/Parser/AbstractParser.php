@@ -29,7 +29,7 @@ abstract class AbstractParser implements ParserInterface
      * @var array
      *
      */
-    protected $split = [
+    protected array $split = [
         // single-quoted string
         "'(?:[^'\\\\]|\\\\'?)*'",
         // double-quoted string
@@ -43,7 +43,7 @@ abstract class AbstractParser implements ParserInterface
      * @var string
      *
      */
-    protected $skip = '/^(\'|\"|\:[^a-zA-Z_])/um';
+    protected string $skip = '/^(\'|\"|\:[^a-zA-Z_])/um';
 
     /**
      *
@@ -52,7 +52,7 @@ abstract class AbstractParser implements ParserInterface
      * @var int
      *
      */
-    protected $num = 0;
+    protected int $num = 0;
 
     /**
      *
@@ -61,7 +61,7 @@ abstract class AbstractParser implements ParserInterface
      * @var array
      *
      */
-    protected $count = [
+    protected array $count = [
         '__' => null,
     ];
 
@@ -72,7 +72,7 @@ abstract class AbstractParser implements ParserInterface
      * @var array
      *
      */
-    protected $values = [];
+    protected array $values = [];
 
     /**
      *
@@ -81,7 +81,7 @@ abstract class AbstractParser implements ParserInterface
      * @var array
      *
      */
-    protected $final_values = [];
+    protected array $final_values = [];
 
     /**
      *

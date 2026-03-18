@@ -20,23 +20,23 @@ services:
         # if you need to do this, you can override this setting on individual services
         public: false
 
-    # makes classes in src/AppBundle available to be used as services
+    # makes classes in src/App available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
-    AppBundle\:
-        resource: '../../../src/AppBundle/*'
+    App\:
+        resource: '../../../src/*'
         # you can exclude directories or files
         # but if a service is unused, it's removed anyway
-        exclude: '../../../src/AppBundle/{Entity,Repository,Tests,version.php,config.php,Controller/ui,Service/HttpHelper.php}'
+        exclude: '../../../src/{Entity,Repository,Tests,version.php,config.php,Controller/ui,Service/HttpHelper.php}'
 
     # controllers are imported separately to make sure they're public
     # and have a tag that allows actions to type-hint services
-    AppBundle\Controller\api\:
-        resource: '../../../src/AppBundle/Controller/api'
+    App\Controller\api\:
+        resource: '../../../src/Controller/api'
         public: true
         tags: ['controller.service_arguments']
 
     # add more services, or override services that need manual wiring
-    # AppBundle\Service\ExampleService:
+    # App\Service\ExampleService:
     #     arguments:
     #         $someArgument: 'some_value'
     #UI - guzzle client service for invoking api endpoints
@@ -47,7 +47,7 @@ services:
     
   
     #OAuthHelperService
-    AppBundle\Service\OAuthHelper:
+    App\Service\OAuthHelper:
         public: true
         arguments:
             $database_host: "%database_host%"
@@ -55,7 +55,7 @@ services:
             $database_user: "%database_user%"
             $database_password: "%database_password%"
     #PdoService
-    AppBundle\Service\PdoHelper:
+    App\Service\PdoHelper:
         public: true
         arguments:
             $database_host: "%database_host%"
@@ -64,31 +64,47 @@ services:
             $database_password: "%database_password%"
     #Monolog DB Handler
     cspro_monolog_handler:
-        class: AppBundle\Service\CSProMySQLHandler
+        class: App\Service\CSProMySQLHandler
         autowire: true
         public: true
         arguments:
             $level: "%csweb_db_log_level%"
 
      #ApiKeyUserProvider 
-    AppBundle\Security\ApiKeyUserProvider:
+    App\Security\ApiKeyUserProvider:
         public: true
    
     #ApiAccessDeniedHandler 
-    AppBundle\Security\ApiAccessDeniedHandler:
+    App\Security\ApiAccessDeniedHandler:
+        public: true
+
+    #FileSecurityValidator
+    App\CSPro\FileManager\FileSecurityValidator:
+        arguments:
+            $mimeTypes: null
+    
+    #LoginVoter
+    App\Security\LoginVoter:
+        tags: ['security.voter']
         public: true
         
     #DictionaryVoter
-    AppBundle\Security\DictionaryVoter:
+    App\Security\DictionaryVoter:
         tags: ['security.voter']
         public: true
     
     #UserVoter
-    AppBundle\Security\UserVoter:
+    App\Security\UserVoter:
         tags: ['security.voter']
         public: true
         
     #AppsVoter
-    AppBundle\Security\AppsVoter:
+    App\Security\AppsVoter:
         tags: ['security.voter']
+        public: true
+    
+    #ExceptionListener
+    App\EventListener\ExceptionListener:
+        tags: 
+            - { name: 'kernel.event_listener', event: 'kernel.exception' }
         public: true

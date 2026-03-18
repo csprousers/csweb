@@ -44,6 +44,8 @@ $databasePassword = "";
 $adminPassword = "";
 $timezone = date_default_timezone_get();
 $filesDirectory = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'files';
+$interalFilesDirectory = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . 'files_csweb';
+
 $maxExecutionTime = 300;
 
 $apiUrl = getProtocol() . '://' . $_SERVER['SERVER_NAME'] . getPort() . parentDirectory(parentDirectory($_SERVER['REQUEST_URI'])) . '/api/';
@@ -71,7 +73,7 @@ function validateParameters($databaseName, $host, $databaseUsername, $databasePa
         throw new Exception('Invalid time zone');
     }
     if ($maxExecutionTime < 0) {
-        throw new Exception('Maximum exeution cannot be less than zero');
+        throw new Exception('Maximum execution cannot be less than zero');
     }
 }
 
@@ -91,7 +93,7 @@ function createDatabase($databaseName, $host, $databaseUsername, $databasePasswo
 
     // Check database version_compare
     $mysqlVersion = $pdo->query('select version()')->fetchColumn();
-    define("MIN_MYSQL_VERSION", "5.5.3");
+    define("MIN_MYSQL_VERSION", "8");
     if (version_compare($mysqlVersion, MIN_MYSQL_VERSION, '<'))
         throw new Exception('MySQL version ' . MIN_MYSQL_VERSION . ' or greater is required. This server is running version ' . $mysqlVersion);
 
@@ -114,15 +116,17 @@ function createDatabase($databaseName, $host, $databaseUsername, $databasePasswo
     $sql = <<<'EOT'
 			CREATE TABLE IF NOT EXISTS `cspro_dictionaries` (
 			  `id` smallint unsigned NOT NULL AUTO_INCREMENT,
-			  `dictionary_name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+			  `name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `dictionary_actual_name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `dictionary_label` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `dictionary_full_content` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+              `dictionary_key_structure` TEXT COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`id`),
-			  UNIQUE KEY `dictionary_name` (`dictionary_name`)
+			  UNIQUE KEY (`name`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_cspro_dictionaries BEFORE INSERT ON `cspro_dictionaries` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_dictionaries BEFORE INSERT ON `cspro_dictionaries` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
     $pdo->exec($sql);
 
@@ -141,7 +145,7 @@ EOT;
 			  CONSTRAINT `schema_dict_id_constraint` FOREIGN KEY (`dictionary_id`) REFERENCES `cspro_dictionaries`(`id`) ON DELETE CASCADE,
 			  UNIQUE KEY `schema_name` (`schema_name`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_dictionaries_schema BEFORE INSERT ON `cspro_dictionaries_schema` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_dictionaries_schema BEFORE INSERT ON `cspro_dictionaries_schema` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
     $pdo->exec($sql);
 
@@ -154,7 +158,7 @@ EOT;
 			  `universe` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 			  `direction` enum('put','get','both') COLLATE utf8mb4_unicode_ci NOT NULL,
                           `last_case_revision` int(11) unsigned,
-                          `last_case_guid` binary(16) DEFAULT NULL,
+                          `last_case_uuid` binary(16) DEFAULT NULL,
 			  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			  PRIMARY KEY (`revision`),
 			  KEY `dictionary_id` (`dictionary_id`),
@@ -186,6 +190,19 @@ EOT;
                           KEY `sync_history_id` (`sync_history_id`),
 			  CONSTRAINT `cspro_sync_history_id_constraint` FOREIGN KEY (`sync_history_id`) REFERENCES `cspro_sync_history`(`revision`) ON DELETE CASCADE
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+EOT;
+    $pdo->exec($sql);
+
+    $sql = <<<'EOT'
+            CREATE TABLE IF NOT EXISTS `cspro_messages` (
+              `id` int unsigned NOT NULL AUTO_INCREMENT,
+              `username` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `device` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+              `value` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+              `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 EOT;
     $pdo->exec($sql);
 
@@ -276,20 +293,21 @@ EOT;
 			  `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`id`),
-                          UNIQUE KEY `rolename_unique` (`name`) 
+                          UNIQUE KEY `rolename_unique` (`name`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Roles Table';
-			CREATE TRIGGER tr_cspro_roles BEFORE INSERT ON `cspro_roles` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_roles BEFORE INSERT ON `cspro_roles` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
     $pdo->exec($sql);
     $sql = <<<'EOT'
                         INSERT IGNORE INTO `cspro_roles` (`id`, `name`) VALUES
                         (1, 'Standard User'),
-                        (2, 'Administrator');
+                        (2, 'Administrator'),
+                        (3, 'Developer');
 EOT;
     $pdo->exec($sql);
 
-    //permissions 
+    //permissions
     $sql = <<<'EOT'
 			CREATE TABLE IF NOT EXISTS `cspro_permissions` (
 			  `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -298,26 +316,52 @@ EOT;
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Permissions Table';
-			CREATE TRIGGER tr_cspro_permissions BEFORE INSERT ON `cspro_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_permissions BEFORE INSERT ON `cspro_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
     $pdo->exec($sql);
     //add permissions into table
     $sql = <<<'EOT'
                     INSERT IGNORE INTO `cspro_permissions` (`id`, `name`) VALUES
-                    (1,'data_all'),
-                    (2,'apps_all'),
-                    (3,'users_all'),
-                    (4,'roles_all'),
-                    (5,'reports_all'),
-                    (6,'dictionary_sync_upload'),
-                    (7,'dictionary_sync_download'),
-                    (8,'settings_all')
+                    (1,'data'),
+                    (10,'apps'),
+                    (20,'users'),
+                    (30,'roles'),
+                    (40,'reports'),
+                    (50,'settings'),
+                    (60,'paradata'),
+                    (70,'dictionaries'),
+                    (80,'messages'),
+                    (90,'files'),
+                    (100,'login'),
+                    (2,'data.read'),
+                    (3,'data.write'),
+                    (4,'data.clear'),
+                    (5,'data.clear.dashboard'),
+                    (6,'data.none'),
+                    (11,'apps.read'),
+                    (12,'apps.write'),
+                    (21,'users.read'),
+                    (22,'users.write'),
+                    (31,'roles.read'),
+                    (32,'roles.write'),
+                    (41,'reports.read'),
+                    (42,'reports.write'),
+                    (51,'settings.read'),
+                    (52,'settings.write'),
+                    (61,'paradata.read'),
+                    (62,'paradata.write'),
+                    (71,'dictionaries.read'),
+                    (72,'dictionaries.write'),
+                    (81,'messages.read'),
+                    (82,'messages.write'),
+                    (91,'files.read'),
+                    (92,'files.write')
                     ;
-                    
+
 EOT;
     $pdo->exec($sql);
-    //role permissions 
+    //role permissions
     $sql = <<<'EOT'
 			CREATE TABLE IF NOT EXISTS `cspro_role_permissions` (
                           `role_id` int unsigned NOT NULL,
@@ -327,11 +371,50 @@ EOT;
 			   CONSTRAINT `cspro_role_id_constraint` FOREIGN KEY (role_id) REFERENCES cspro_roles(id) ON DELETE CASCADE,
                            CONSTRAINT `cspro_permission_id_constraint` FOREIGN KEY (permission_id) REFERENCES cspro_permissions(id) ON DELETE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Role Permissions Table';
-			CREATE TRIGGER tr_cspro_role_permissions BEFORE INSERT ON `cspro_role_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_role_permissions BEFORE INSERT ON `cspro_role_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
     $pdo->exec($sql);
-    //role dictionary permissions 
+    //admin role default permissions
+     $sql = <<<'EOT'
+                    INSERT IGNORE INTO `cspro_role_permissions` (`role_id`, `permission_id`) VALUES
+                    (1, 2),   /*standard user role - data.read */
+                    (1, 3),   /* data.write */
+                    (1, 11),  /* apps.read */
+                    (1, 61),  /* paradata.read */
+                    (1, 62),  /* paradata.write */
+                    (1, 71),  /* dictionaries.read*/
+                    (1, 81),  /* messages.read */
+                    (1, 82),  /* messages.write */
+                    (1, 91),  /* files.read */
+                    (1, 92),  /* files.write */
+                    (2, 1),   /* admin role - data */
+                    (2, 10),  /* apps */
+                    (2, 20),  /* users */
+                    (2, 30),  /* roles */
+                    (2, 40),  /* reports */
+                    (2, 50),  /* settings */
+                    (2, 60),  /* paradata */
+                    (2, 70),  /* dictionaries */
+                    (2, 80),  /* messages */
+                    (2, 90),  /* files */
+                    (2, 100),  /* login */
+                    (3, 2),   /*developer role - data.read */
+                    (3, 3),   /* data.write */
+                    (3, 5),   /* data.clear.dashboard */
+                    (3, 10),  /* apps */
+                    (3, 20),  /* users */
+                    (3, 40),  /* reports */
+                    (3, 50),  /* settings */
+                    (3, 60),  /* paradata */
+                    (3, 70),  /* dictionaries */
+                    (3, 80),  /* messages */
+                    (3, 90),  /* files */
+                    (3, 100);  /* login */
+
+EOT;
+    $pdo->exec($sql);
+    //role dictionary permissions
     $sql = <<<'EOT'
 			CREATE TABLE IF NOT EXISTS `cspro_role_dictionary_permissions` (
                           `role_id` int unsigned NOT NULL,
@@ -343,12 +426,13 @@ EOT;
                            CONSTRAINT `cspro_role_dictionary_id_constraint` FOREIGN KEY (dictionary_id) REFERENCES cspro_dictionaries(id) ON DELETE CASCADE,
                            CONSTRAINT `cspro_role_dictionary_permission_id_constraint` FOREIGN KEY (permission_id) REFERENCES cspro_permissions(id) ON DELETE CASCADE
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Role Dictionary Permissions Table';
-			CREATE TRIGGER tr_cspro_role_dictionary_permissions BEFORE INSERT ON `cspro_role_dictionary_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_role_dictionary_permissions BEFORE INSERT ON `cspro_role_dictionary_permissions` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 
 EOT;
     $pdo->exec($sql);
     $sql = <<<'EOT'
 			CREATE TABLE IF NOT EXISTS `cspro_users` (
+              `uuid` varchar(36) NOT NULL,
 			  `username` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `password` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 			  `first_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -359,17 +443,19 @@ EOT;
 			  `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`username`),
+              UNIQUE KEY (`uuid`),
 			  KEY `role` (`role`),
 			  CONSTRAINT `role_id_constraint` FOREIGN KEY (`role`) REFERENCES `cspro_roles` (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_cspro_users BEFORE INSERT ON `cspro_users` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_users BEFORE INSERT ON `cspro_users` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
     $pdo->exec($sql);
 
     $hash = password_hash($adminPassword, PASSWORD_DEFAULT);
+    $uuid = guidv4();
     $sql = <<<EOT
-			INSERT IGNORE INTO `cspro_users` (`username`, `password`, `first_name`, `last_name`,`role`) VALUES
-			('admin', '$hash', 'System', 'Administrator','2');
+			INSERT IGNORE INTO `cspro_users` (`uuid`, `username`, `password`, `first_name`, `last_name`,`role`) VALUES
+			('$uuid', 'admin', '$hash', 'System', 'Administrator','2');
 EOT;
     $pdo->exec($sql);
 
@@ -383,12 +469,12 @@ EOT;
 			  `path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `version` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `files` TEXT COLLATE utf8mb4_unicode_ci NOT NULL,
-			  `signature` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,              
+			  `signature` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
 			  `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  UNIQUE KEY `name` (`name`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_cspro_apps BEFORE INSERT ON `cspro_apps` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_apps BEFORE INSERT ON `cspro_apps` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
     $pdo->exec($sql);
 
@@ -401,7 +487,7 @@ EOT;
 			  `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 			  PRIMARY KEY (`name`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-			CREATE TRIGGER tr_cspro_config BEFORE INSERT ON `cspro_config` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
+			CREATE TRIGGER IF NOT EXISTS tr_cspro_config BEFORE INSERT ON `cspro_config` FOR EACH ROW SET NEW.`created_time` = CURRENT_TIMESTAMP;
 EOT;
     $pdo->exec($sql);
     $sql = "INSERT IGNORE INTO `cspro_config` (`name`, `value`) VALUES	('schema_version', " . SCHEMA_VERSION . "),"
@@ -425,7 +511,7 @@ function createFilesDirectory($filesDirectory) {
     }
 }
 
-function writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl) {
+function writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $interalFilesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl) {
     $configFilePath = getApiConfigFilePath();
     $configFile = @fopen($configFilePath, "w");
     if (!$configFile)
@@ -437,6 +523,7 @@ function writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePa
     fwrite($configFile, "define('DBNAME', '$databaseName');\n");
     fwrite($configFile, "define('ENABLE_OAUTH', true);\n");
     fwrite($configFile, "define('FILES_FOLDER', '$filesDirectory');\n");
+    fwrite($configFile, "define('INTERNAL_FILES_FOLDER', '$interalFilesDirectory');\n");
     fwrite($configFile, "define('DEFAULT_TIMEZONE', '$timezone');\n");
     fwrite($configFile, "define('MAX_EXECUTION_TIME', '$maxExecutionTime');\n");
     fwrite($configFile, "define('API_URL', '$apiUrl');\n");
@@ -483,13 +570,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         validateParameters($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $apiUrl, $timezone, $maxExecutionTime);
 
         createFilesDirectory($filesDirectory);
+        createFilesDirectory($interalFilesDirectory);
+
 
         if ($upgrade == 1) {
-            writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl);
+            writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $interalFilesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl);
             header('Location: ../upgrade/upgrade.php');
         } else {
             createDatabase($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword);
-            writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl);
+            writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $interalFilesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl);
             testApiUrl($apiUrl, 'admin', $adminPassword);
             header('Location: complete.php');
         }
@@ -584,21 +673,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <fieldset>
                     <input type="hidden" id="upgrade" name="upgrade" value="<?php print(htmlspecialchars($upgrade)) ?>">
                     <div class="form-group row">
-                        <label class="col-sm-3 col-form-label" for="name">Database name</label>  
+                        <label class="col-sm-3 col-form-label" for="name">Database name</label>
                         <div class="col-sm-9">
                             <input id="dbname" name="dbname" class="form-control" type="text" value="<?php print(htmlspecialchars($databaseName)) ?>" placeholder="Name of database (e.g. cspro)." class="form-control input-md" required="">
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-3 col-form-label" for="host">Hostname</label>  
+                        <label class="col-sm-3 col-form-label" for="host">Hostname</label>
                         <div class="col-sm-9">
-                            <input id="dbhost" name="dbhost" type="text" class="form-control" value="<?php print(htmlspecialchars($host)) ?>" placeholder="Hostname of database server (e.g. localhost)." class="form-control input-md" required="">  
+                            <input id="dbhost" name="dbhost" type="text" class="form-control" value="<?php print(htmlspecialchars($host)) ?>" placeholder="Hostname of database server (e.g. localhost)." class="form-control input-md" required="">
                         </div>
                     </div>
 
                     <div class="form-group row">
-                        <label class="col-sm-3 col-form-label" for="username">Database username</label>  
+                        <label class="col-sm-3 col-form-label" for="username">Database username</label>
                         <div class="col-sm-9">
                             <input id="dbusername" name="dbusername" type="text" value="<?php print(htmlspecialchars($databaseUsername)) ?>" placeholder="Name of database user. Must already exist." class="form-control input-md" required="">
                         </div>

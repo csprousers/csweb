@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block nav %}
-    {% if is_granted('ROLE_REPORTS_ALL') == true %}
+    {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_REPORTS') or is_granted('ROLE_REPORTS.READ')) %}
         <li id="sync-report-nav-item" class="nav-item active">
             <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapseSyncReport"
                aria-expanded="true" aria-controls="collapseSyncReport">
@@ -17,8 +17,7 @@
                 <span>Sync Report</span>
             </a>
              <div id="collapseSyncReport" class="collapse show" aria-labelledby="headingTwo" data-parent="#side-menu">
-                <div class="bg-white collapse-inner rounded" id="sync-report-dictionaries">
-                </div>
+                <div class="hide-if-empty bg-white collapse-inner rounded" id="sync-report-dictionaries"></div>
             </div>
         </li>
         <li id="map-report-nav-item" class="nav-item">
@@ -38,7 +37,7 @@
             <div class="modal-content">
                 <div class="modal-header"><h4>Processing....</h4>
                     <div class="progress">
-                        <div style="width:0%" class="progress-bar progress-bar-striped progress-bar-animated" 
+                        <div style="width:0%" class="progress-bar progress-bar-striped progress-bar-animated"
                              role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="2">
                             <div class="progressText">0% Complete</div>
                         </div>
@@ -147,7 +146,7 @@
              // Data tables
              $('[data-toggle="popover"]').popover();
              $.fn.dataTable.ext.errMode = 'none'; //user custom error processing for the datatable to handle redirects
-             
+
              var syncTable = $('#table-responsive')
              .on('xhr.dt', function ( e, settings, json, xhr ) {
              if (xhr.status === 401 || xhr.status === 405) {
@@ -188,12 +187,12 @@
              var val = $.fn.dataTable.util.escapeRegex(
              $(this).val()
              );
-             
+
              column
              .search( val, false, false )
              .draw();
              } );
-             
+
              column.data().unique().sort().each( function ( d, j ) {
              select.append( '<option value="'+d+'">'+d+'</option>' )
              } );
@@ -366,7 +365,7 @@
                             else {
                                 dictionarySyncReport.setAttribute("class", "collapse-item cspro-nav-item cspro-pointer");
                             }
-                                
+
                             dictionarySyncReport.innerHTML = el.dictionary_label + ' (' + el.dictionary_name + ')';
                             var callback = "ui.changeDictionary('" + dictionarySyncReport.id + "')";
                             dictionarySyncReport.setAttribute("onclick", callback);
@@ -574,7 +573,7 @@
                                          var val = $.fn.dataTable.util.escapeRegex(
                                          $(this).val()
                                          );
-                                         
+
                                          column
                                          .search(val, false, false)
                                          .draw();

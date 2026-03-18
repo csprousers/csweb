@@ -11,9 +11,12 @@
 
 namespace Symfony\Component\Lock\Store;
 
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
+use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
+use Doctrine\DBAL\Tools\DsnParser;
 use Symfony\Component\Lock\BlockingSharedLockStoreInterface;
 use Symfony\Component\Lock\BlockingStoreInterface;
 use Symfony\Component\Lock\Exception\InvalidArgumentException;
@@ -29,34 +32,54 @@ use Symfony\Component\Lock\SharedLockStoreInterface;
  */
 class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, BlockingStoreInterface
 {
-    private $conn;
-    private static $storeRegistry = [];
+    private Connection $conn;
+    private static array $storeRegistry = [];
 
     /**
      * You can either pass an existing database connection a Doctrine DBAL Connection
      * or a URL that will be used to connect to the database.
      *
-     * @param Connection|string $connOrUrl A Connection instance or Doctrine URL
-     *
      * @throws InvalidArgumentException When first argument is not Connection nor string
      */
-    public function __construct($connOrUrl)
+    public function __construct(#[\SensitiveParameter] Connection|string $connOrUrl)
     {
         if ($connOrUrl instanceof Connection) {
             if (!$connOrUrl->getDatabasePlatform() instanceof PostgreSQLPlatform) {
-                throw new InvalidArgumentException(sprintf('The adapter "%s" does not support the "%s" platform.', __CLASS__, \get_class($connOrUrl->getDatabasePlatform())));
+                throw new InvalidArgumentException(\sprintf('The adapter "%s" does not support the "%s" platform.', __CLASS__, $connOrUrl->getDatabasePlatform()::class));
             }
             $this->conn = $connOrUrl;
-        } elseif (\is_string($connOrUrl)) {
-            if (!class_exists(DriverManager::class)) {
-                throw new InvalidArgumentException(sprintf('Failed to parse the DSN "%s". Try running "composer require doctrine/dbal".', $connOrUrl));
-            }
-            $this->conn = DriverManager::getConnection(['url' => $this->filterDsn($connOrUrl)]);
         } else {
-            throw new \TypeError(sprintf('Argument 1 passed to "%s()" must be "%s" or string, "%s" given.', Connection::class, __METHOD__, get_debug_type($connOrUrl)));
+            if (!class_exists(DriverManager::class)) {
+                throw new InvalidArgumentException('Failed to parse DSN. Try running "composer require doctrine/dbal".');
+            }
+            if (class_exists(DsnParser::class)) {
+                $params = (new DsnParser([
+                    'db2' => 'ibm_db2',
+                    'mssql' => 'pdo_sqlsrv',
+                    'mysql' => 'pdo_mysql',
+                    'mysql2' => 'pdo_mysql',
+                    'postgres' => 'pdo_pgsql',
+                    'postgresql' => 'pdo_pgsql',
+                    'pgsql' => 'pdo_pgsql',
+                    'sqlite' => 'pdo_sqlite',
+                    'sqlite3' => 'pdo_sqlite',
+                ]))->parse($this->filterDsn($connOrUrl));
+            } else {
+                $params = ['url' => $this->filterDsn($connOrUrl)];
+            }
+
+            $config = new Configuration();
+            if (class_exists(DefaultSchemaManagerFactory::class)) {
+                $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
+            }
+
+            $this->conn = DriverManager::getConnection($params, $config);
         }
     }
 
+    /**
+     * @return void
+     */
     public function save(Key $key)
     {
         // prevent concurrency within the same connection
@@ -89,6 +112,9 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
         throw new LockConflictedException();
     }
 
+    /**
+     * @return void
+     */
     public function saveRead(Key $key)
     {
         // prevent concurrency within the same connection
@@ -121,6 +147,9 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
         throw new LockConflictedException();
     }
 
+    /**
+     * @return void
+     */
     public function putOffExpiration(Key $key, float $ttl)
     {
         // postgresql locks forever.
@@ -130,6 +159,9 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
         }
     }
 
+    /**
+     * @return void
+     */
     public function delete(Key $key)
     {
         // Prevent deleting locks own by an other key in the same connection
@@ -145,14 +177,14 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
             // If lock acquired = there is no other ReadLock
             $store->save($key);
             $this->unlockShared($key);
-        } catch (LockConflictedException $e) {
+        } catch (LockConflictedException) {
             // an other key exists in this ReadLock
         }
 
         $store->delete($key);
     }
 
-    public function exists(Key $key)
+    public function exists(Key $key): bool
     {
         $sql = "SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND objid=:key AND pid=pg_backend_pid()";
         $result = $this->conn->executeQuery($sql, [
@@ -167,6 +199,9 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
         return false;
     }
 
+    /**
+     * @return void
+     */
     public function waitAndSave(Key $key)
     {
         // prevent concurrency within the same connection
@@ -190,6 +225,9 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
         $this->unlockShared($key);
     }
 
+    /**
+     * @return void
+     */
     public function waitAndSaveRead(Key $key)
     {
         // prevent concurrency within the same connection
@@ -247,25 +285,25 @@ class DoctrineDbalPostgreSqlStore implements BlockingSharedLockStoreInterface, B
      *
      * @throws InvalidArgumentException when driver is not supported
      */
-    private function filterDsn(string $dsn): string
+    private function filterDsn(#[\SensitiveParameter] string $dsn): string
     {
         if (!str_contains($dsn, '://')) {
-            throw new InvalidArgumentException(sprintf('String "%" is not a valid DSN for Doctrine DBAL.', $dsn));
+            throw new InvalidArgumentException('DSN is invalid for Doctrine DBAL.');
         }
 
         [$scheme, $rest] = explode(':', $dsn, 2);
         $driver = strtok($scheme, '+');
         if (!\in_array($driver, ['pgsql', 'postgres', 'postgresql'])) {
-            throw new InvalidArgumentException(sprintf('The adapter "%s" does not support the "%s" driver.', __CLASS__, $driver));
+            throw new InvalidArgumentException(\sprintf('The adapter "%s" does not support the "%s" driver.', __CLASS__, $driver));
         }
 
-        return sprintf('%s:%s', $driver, $rest);
+        return \sprintf('%s:%s', $driver, $rest);
     }
 
     private function getInternalStore(): SharedLockStoreInterface
     {
         $namespace = spl_object_hash($this->conn);
 
-        return self::$storeRegistry[$namespace] ?? self::$storeRegistry[$namespace] = new InMemoryStore();
+        return self::$storeRegistry[$namespace] ??= new InMemoryStore();
     }
 }

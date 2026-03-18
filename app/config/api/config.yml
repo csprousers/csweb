@@ -54,7 +54,23 @@ twig:
 # monolog configuration 
 monolog:
     handlers:
-        db:
+        # Buffer logs and only flush on error or higher level
+        error_buffer:
+            type: fingers_crossed
+            action_level: error
+            handler: all_logging
+        # Group handler to manage multiple logging destinations. Order file logging first to ensure error is logged even if db is not available
+        all_logging:
+            type: group
+            members: [file_logging, database_logging]
+        # File logging handler for all environments
+        file_logging:
+            type: rotating_file
+            path: '%kernel.logs_dir%/api.%kernel.environment%.log'
+            level: debug
+            channels: ['!event']
+         # Database logging handler (custom)
+        database_logging:
             type: service
             id: cspro_monolog_handler
-
+            

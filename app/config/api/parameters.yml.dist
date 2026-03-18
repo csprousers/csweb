@@ -11,6 +11,7 @@ parameters:
     #API related parameters
     enable_oauth: true
     csweb_api_files_folder: 'C:\code\csweb\files'
+    csweb_internal_files_folder: 'C:\code\csweb\files_csweb'
     csweb_api_default_timezone: 'Europe/Paris'
-  
+
 

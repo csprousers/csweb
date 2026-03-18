@@ -135,7 +135,7 @@ interface ExtendedPdoInterface extends PdoInterface
      *
      * @param array $args Arguments to pass to the object constructor.
      *
-     * @return object
+     * @return object|false
      *
      */
     public function fetchObject(
@@ -143,7 +143,7 @@ interface ExtendedPdoInterface extends PdoInterface
         array $values = [],
         string $class = 'stdClass',
         array $args = []
-    ): object;
+    ): object|false;
 
     /**
      *
@@ -187,7 +187,7 @@ interface ExtendedPdoInterface extends PdoInterface
      * @return array|false
      *
      */
-    public function fetchOne(string $statement, array $values = []);
+    public function fetchOne(string $statement, array $values = []): array|false;
 
     /**
      *
@@ -214,7 +214,7 @@ interface ExtendedPdoInterface extends PdoInterface
      * @return mixed
      *
      */
-    public function fetchValue(string $statement, array $values = []);
+    public function fetchValue(string $statement, array $values = []): mixed;
 
     /**
      *

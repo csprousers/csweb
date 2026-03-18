@@ -1,6 +1,6 @@
 <?php
 
-define ("API_SRC_DIRECTORY", '/../src/AppBundle/');
+define ("API_SRC_DIRECTORY", '/../src/');
 define ("API_CONFIG_FILE_RELATIVE_PATH", API_SRC_DIRECTORY . 'config.php');
 define ("API_VERSION_FILE_RELATIVE_PATH", API_SRC_DIRECTORY . 'version.php');
 define ("UI_CONFIG_FILE_RELATIVE_PATH", API_SRC_DIRECTORY . 'config.php');

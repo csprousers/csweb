@@ -16,27 +16,25 @@
         }
     ],
     "require": {
-        "php": ">=7.1.3",
-        "symfony/monolog-bridge": "~4.4 || ^5.0 || ^6.0",
-        "symfony/dependency-injection": "^4.4 || ^5.0 || ^6.0",
-        "symfony/config": "~4.4 || ^5.0 || ^6.0",
-        "symfony/http-kernel": "~4.4 || ^5.0 || ^6.0",
-        "monolog/monolog": "^1.22 || ^2.0 || ^3.0"
+        "php": ">=8.1",
+        "composer-runtime-api": "^2.0",
+        "monolog/monolog": "^1.25.1 || ^2.0 || ^3.0",
+        "symfony/config": "^6.4 || ^7.0",
+        "symfony/dependency-injection": "^6.4 || ^7.0",
+        "symfony/deprecation-contracts": "^2.5 || ^3.0",
+        "symfony/http-kernel": "^6.4 || ^7.0",
+        "symfony/monolog-bridge": "^6.4 || ^7.0",
+        "symfony/polyfill-php84": "^1.30"
     },
     "require-dev": {
-        "symfony/yaml": "~4.4 || ^5.0 || ^6.0",
-        "symfony/console": "~4.4 || ^5.0 || ^6.0",
-        "symfony/phpunit-bridge": "^5.2 || ^6.0"
+        "symfony/console": "^6.4 || ^7.0",
+        "symfony/phpunit-bridge": "^7.3.3",
+        "symfony/yaml": "^6.4 || ^7.0"
     },
     "autoload": {
-        "psr-4": { "Symfony\\Bundle\\MonologBundle\\": "" },
-        "exclude-from-classmap": [
-            "/Tests/"
-        ]
+        "psr-4": { "Symfony\\Bundle\\MonologBundle\\": "src" }
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.x-dev"
-        }
+    "autoload-dev": {
+        "psr-4": { "Symfony\\Bundle\\MonologBundle\\Tests\\": "tests" }
     }
 }

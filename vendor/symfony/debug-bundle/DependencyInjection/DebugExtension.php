@@ -14,13 +14,12 @@ namespace Symfony\Bundle\DebugBundle\DependencyInjection;
 use Symfony\Bridge\Monolog\Command\ServerLogCommand;
 use Symfony\Bundle\DebugBundle\Command\ServerDumpPlaceholderCommand;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\VarDumper\Caster\ReflectionCaster;
-use Symfony\Component\VarDumper\Dumper\CliDumper;
-use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 
 /**
  * DebugExtension.
@@ -30,7 +29,7 @@ use Symfony\Component\VarDumper\Dumper\HtmlDumper;
 class DebugExtension extends Extension
 {
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -43,14 +42,10 @@ class DebugExtension extends Extension
         $container->getDefinition('var_dumper.cloner')
             ->addMethodCall('setMaxItems', [$config['max_items']])
             ->addMethodCall('setMinDepth', [$config['min_depth']])
-            ->addMethodCall('setMaxString', [$config['max_string_length']]);
+            ->addMethodCall('setMaxString', [$config['max_string_length']])
+            ->addMethodCall('addCasters', [ReflectionCaster::UNSET_CLOSURE_FILE_INFO]);
 
-        if (method_exists(ReflectionCaster::class, 'unsetClosureFileInfo')) {
-            $container->getDefinition('var_dumper.cloner')
-                ->addMethodCall('addCasters', [ReflectionCaster::UNSET_CLOSURE_FILE_INFO]);
-        }
-
-        if (method_exists(HtmlDumper::class, 'setTheme') && 'dark' !== $config['theme']) {
+        if ('dark' !== $config['theme']) {
             $container->getDefinition('var_dumper.html_dumper')
                 ->addMethodCall('setTheme', [$config['theme']]);
         }
@@ -84,31 +79,23 @@ class DebugExtension extends Extension
             ;
         }
 
-        if (method_exists(CliDumper::class, 'setDisplayOptions')) {
-            $container->getDefinition('var_dumper.cli_dumper')
-                ->addMethodCall('setDisplayOptions', [[
-                    'fileLinkFormat' => new Reference('debug.file_link_formatter', ContainerBuilder::IGNORE_ON_INVALID_REFERENCE),
-                ]])
-            ;
-        }
+        $container->getDefinition('var_dumper.cli_dumper')
+            ->addMethodCall('setDisplayOptions', [[
+                'fileLinkFormat' => new Reference('debug.file_link_formatter', ContainerBuilder::IGNORE_ON_INVALID_REFERENCE),
+            ]])
+        ;
 
-        if (!class_exists(ServerLogCommand::class)) {
+        if (!class_exists(Command::class) || !class_exists(ServerLogCommand::class)) {
             $container->removeDefinition('monolog.command.server_log');
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getXsdValidationBasePath()
+    public function getXsdValidationBasePath(): string|false
     {
         return __DIR__.'/../Resources/config/schema';
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getNamespace()
+    public function getNamespace(): string
     {
         return 'http://symfony.com/schema/dic/debug';
     }

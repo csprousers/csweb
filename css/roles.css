@@ -1,0 +1,161 @@
+.table th,
+.table td {
+    text-align: center;
+}
+
+#permissions .name {
+    text-transform: capitalize;
+}
+
+#delete-modal-role-name {
+    font-style: italic;
+    font-weight: bold;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#templates {
+    display: none;
+}
+
+.icon-action {
+    cursor: pointer;
+    color: #4e73df;
+}
+
+.icon-disabled {
+    cursor: not-allowed;
+    color: #d1d3e2;
+    pointer-events: none;
+}
+
+/* We make sure that the table cells all have the same width */
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+table th, table td {
+    word-wrap: normal;
+}
+
+/* We hide ID columns */
+.role .id,
+.th-dpdictionary-id,
+.dpdictionary td.id,
+.th-role-id,
+#roles .data {
+    display: none;
+}
+
+/* We hide the Data column and Data-Permission row */
+
+.th-data {
+    display: none;
+}
+
+.table-title {
+    margin-top: 15px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.modal-content {
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+#modal {
+    overflow-y: hidden !important;
+}
+
+/* Allow Name and Label columns to be wider and wrap text */
+#table-data-permissions {
+    table-layout: auto;
+}
+
+#table-data-permissions th:nth-child(2), /* Label column */
+#table-data-permissions td:nth-child(2),
+#table-data-permissions th:nth-child(3), /* Name column */
+#table-data-permissions td:nth-child(3) {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.page-size-container,
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.no-margin-bottom {
+    margin-bottom: 0 !important;
+}
+
+.pagination-next-prev {
+    display: flex;
+}
+
+.page-number .page-link {
+    border-radius: 0 !important;
+}
+
+.pages-container {
+    display: flex;
+}
+
+.pagination-next-prev .page-item:not(.disabled) {
+    cursor: pointer;
+}
+
+#row-pagination-data-permissions {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#table-permissions {
+    margin-bottom: 40px;
+}
+
+#label-role-name {
+    padding-left: 0px !important;
+    max-width: fit-content;
+    font-weight: bold;
+}
+
+#container-role-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#header-data-permissions {
+    font-weight: bold;
+}
+
+td.actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border: none;
+}
+
+.no-bottom-margin {
+    margin-bottom: 0 !important;
+}
+
+.modal-dialog.custom-wide {
+    max-width: 95vw;
+    width: 95vw;
+}

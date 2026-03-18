@@ -14,6 +14,11 @@ namespace Symfony\Component\Form\Extension\Core\DataTransformer;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\InvalidArgumentException;
 
+/**
+ * @template TTransformedValue
+ *
+ * @implements DataTransformerInterface<\DateTimeInterface, TTransformedValue>
+ */
 abstract class BaseDateTimeTransformer implements DataTransformerInterface
 {
     protected static $formats = [
@@ -34,7 +39,7 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
      *
      * @throws InvalidArgumentException if a timezone is not valid
      */
-    public function __construct(string $inputTimezone = null, string $outputTimezone = null)
+    public function __construct(?string $inputTimezone = null, ?string $outputTimezone = null)
     {
         $this->inputTimezone = $inputTimezone ?: date_default_timezone_get();
         $this->outputTimezone = $outputTimezone ?: date_default_timezone_get();
@@ -43,13 +48,13 @@ abstract class BaseDateTimeTransformer implements DataTransformerInterface
         try {
             new \DateTimeZone($this->inputTimezone);
         } catch (\Exception $e) {
-            throw new InvalidArgumentException(sprintf('Input timezone is invalid: "%s".', $this->inputTimezone), $e->getCode(), $e);
+            throw new InvalidArgumentException(\sprintf('Input timezone is invalid: "%s".', $this->inputTimezone), $e->getCode(), $e);
         }
 
         try {
             new \DateTimeZone($this->outputTimezone);
         } catch (\Exception $e) {
-            throw new InvalidArgumentException(sprintf('Output timezone is invalid: "%s".', $this->outputTimezone), $e->getCode(), $e);
+            throw new InvalidArgumentException(\sprintf('Output timezone is invalid: "%s".', $this->outputTimezone), $e->getCode(), $e);
         }
     }
 }

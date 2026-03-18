@@ -34,7 +34,7 @@ interface ConnectionLocatorInterface
      * @return ExtendedPdoInterface
      *
      */
-    public function getDefault();
+    public function getDefault(): ExtendedPdoInterface;
 
     /**
      *
@@ -59,7 +59,7 @@ interface ConnectionLocatorInterface
      * @return ExtendedPdoInterface
      *
      */
-    public function getRead(string $name = '');
+    public function getRead(string $name = ''): ExtendedPdoInterface;
 
     /**
      *
@@ -84,5 +84,5 @@ interface ConnectionLocatorInterface
      * @return ExtendedPdoInterface
      *
      */
-    public function getWrite(string $name = '');
+    public function getWrite(string $name = ''): ExtendedPdoInterface;
 }

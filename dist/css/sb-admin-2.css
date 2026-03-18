@@ -2344,6 +2344,8 @@ textarea.form-control {
 
 .btn.disabled, .btn:disabled {
   opacity: 0.65;
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .btn:not(:disabled):not(.disabled) {
@@ -6492,6 +6494,10 @@ button.bg-dark:focus {
 
 .bg-white {
   background-color: #fff !important;
+}
+
+.hide-if-empty:empty {
+  display: none;
 }
 
 .bg-transparent {

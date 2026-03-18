@@ -21,9 +21,9 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 class AtLeastOneOfValidator extends ConstraintValidator
 {
     /**
-     * {@inheritdoc}
+     * @return void
      */
-    public function validate($value, Constraint $constraint)
+    public function validate(mixed $value, Constraint $constraint)
     {
         if (!$constraint instanceof AtLeastOneOf) {
             throw new UnexpectedTypeException($constraint, AtLeastOneOf::class);
@@ -42,9 +42,11 @@ class AtLeastOneOfValidator extends ConstraintValidator
                 continue;
             }
 
+            $context = $this->context;
             $executionContext = clone $this->context;
             $executionContext->setNode($value, $this->context->getObject(), $this->context->getMetadata(), $this->context->getPropertyPath());
             $violations = $validator->inContext($executionContext)->validate($value, $item, $this->context->getGroup())->getViolations();
+            $this->context = $context;
 
             if (\count($this->context->getViolations()) === \count($violations)) {
                 return;

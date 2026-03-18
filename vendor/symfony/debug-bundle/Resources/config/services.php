@@ -50,8 +50,9 @@ return static function (ContainerConfigurator $container) {
                 service('debug.stopwatch')->ignoreOnInvalid(),
                 service('debug.file_link_formatter')->ignoreOnInvalid(),
                 param('kernel.charset'),
-                service('request_stack'),
+                service('.virtual_request_stack'),
                 null, // var_dumper.cli_dumper or var_dumper.server_connection when debug.dump_destination is set
+                param('kernel.runtime_mode.web'),
             ])
             ->tag('data_collector', [
                 'id' => 'dump',

@@ -37,7 +37,7 @@
     </style>
 {% endblock %}
 {% block navSettings %}
-    {% if is_granted('ROLE_SETTINGS_ALL') == true %}
+    {% if is_granted('ROLE_LOGIN') and (is_granted('ROLE_SETTINGS') or is_granted('ROLE_SETTINGS.READ'))  %}
         <li id="settings-nav-item" class="nav-item active">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSettings"
                aria-expanded="true" aria-controls="collapseSettings">
@@ -232,10 +232,10 @@
                             <!-- form-group row -->
                         </div>
                         <!-- map-options -->
-                        <div class="modal-footer">
+                        <div class="modal-footer modal-footer-spacing-and-alignment">
                             <button type="submit" class="btn btn-primary" id="add-button">Add</button>
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                        </div>  
+                        </div>
                         <!-- form-group row -->
                     </form>
                     <!-- form-horizontal -->
@@ -428,7 +428,7 @@
                             <button type="submit" class="btn btn-primary" id="update-button">Update</button>
                             <button type="button" class="btn btn-danger" id="edit-cancel-button" data-dismiss="modal">Cancel</button>
                             <button type="button" class="btn btn-primary hidden" id="view-additional-config-cancel-button">Cancel</button>
-                        </div>  
+                        </div>
                         <!-- modal-footer -->
                     </form>
                     <!-- form-horizontal -->
@@ -478,14 +478,15 @@
         <!-- /.col-12 -->
     </div>
     <!-- /.row -->
+    {% set canManageSettings = is_granted('ROLE_SETTINGS') or is_granted('ROLE_SETTINGS.WRITE') %}
     <div class="row">
         <div class="col-12">
             <div class="card shadow mb-4">
                 <!-- ALW - Create margin above panel heading -->
-                <div class="card-header py-2">
-                    <i class="fas fa-database fa-fw"></i> Data Configuration
+                <div class="card-header py-2" style="flex-wrap: wrap;display: flex;justify-content: space-between;">
+                    <div><i class="fas fa-database fa-fw"></i> Data Configuration</div>
                     <div class="btn-toolbar float-right">
-                        <button type="button" class="btn btn-primary btn-xs float-right" id="configure-dictionary-button">Add Configuration</button>
+                        <button type="button" class="btn btn-primary btn-sm float-right" id="configure-dictionary-button" {% if not canManageSettings %}disabled{% endif %}>Add Configuration</button>
                     </div>
                 </div>
                 <!-- /.panel-heading -->
@@ -514,8 +515,20 @@
                                         <td>{{ dataSetting.totalCases}}</td>
                                         <td>{{ dataSetting.processedCases}}</td>
                                         <td>{{ dataSetting.lastProcessedTime}}</td>
-                                        <td style="text-align: center" ><a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a></td>
-                                        <td style="text-align: center" ><a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a></td>
+                                        <td style="text-align: center">
+                                            {% if canManageSettings %}
+                                                <a href="javascript:;" class="edit-button-class"><i class="fas fa-pencil-alt fa-fw"></i></a>
+                                            {% else %}
+                                                <a href="javascript:;" class="isDisabled" style="color:grey; cursor:not-allowed; pointer-events: none;"><i class="fas fa-pencil-alt fa-fw"></i></a>
+                                            {% endif %}
+                                        </td>
+                                        <td style="text-align: center">
+                                            {% if canManageSettings %}
+                                                <a href="javascript:;" class="delete-button-class"><i class="fas fa-trash-alt fa-fw"></i></a>
+                                            {% else %}
+                                                <a href="javascript:;" class="isDisabled" style="color:grey; cursor:not-allowed; pointer-events: none;"><i class="fas fa-trash-alt fa-fw"></i></a>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -782,7 +795,7 @@
             $(document).ready(function () {
                 // Spinner functionality
                 var $body = $("body");
-                
+
                 $(document).ajaxStart(function (event, request, settings) {
                     $body.addClass("loading");
                 });
@@ -917,7 +930,7 @@
                     buttonList.setAttribute('class', 'text-center');
                     var clearButton = document.createElement('button');
                     clearButton.setAttribute('type', 'button');
-                    clearButton.setAttribute('class', 'btn btn-default btn-xs clear close-dropdown');
+                    clearButton.setAttribute('class', 'btn btn-default btn-sm clear close-dropdown');
                     clearButton.setAttribute('value', 'Clear');
                     clearButton.appendChild(document.createTextNode('clear'));
                     buttonList.appendChild(clearButton);
@@ -1152,7 +1165,7 @@
                 else {
                     $('#basemap-key').removeAttr('required');
                 }
-                
+
             }
             else {
                 document.getElementById('map-options').classList.add('hidden');
@@ -1206,7 +1219,7 @@
                 clearFormGroupError($("#map-enable").closest('.form-group'));
                 $("#add-config-modal").modal("show");
             });
-                
+
             function styleDifferences(a, b) {
                 var as = getComputedStyle(a, null);
                 var bs = getComputedStyle(b, null);
@@ -1356,7 +1369,7 @@
                     initBootstrapValidator: initBootstrapValidator
                 };
             })();
-            //Edit config functionality 
+            //Edit config functionality
             $('#data-config-table tbody').on('click', '.edit-button-class', function (event) {
                 var tr = $(event.target).closest("tr");
                 var dataSettings

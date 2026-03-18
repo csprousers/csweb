@@ -1,3 +1,30 @@
+# Block direct browser access to specific files
+<FilesMatch "^(\.DS_Store|\.htaccess|README\.md|\.gitignore|bower\.json|web\.config|composer\.json|composer\.lock|composer\.phar|api/web\.config|app/AppCache\.php|files/\.gitignore|maps/\.travis\.yml|app/AppKernel\.php|app/api/ApiKernel\.php)$">
+    <IfModule mod_authz_core.c>
+        # Apache v2.4 or later
+        Require all denied
+    </IfModule>
+    <IfModule mod_access_compat.c>
+        # Apache 2.2, 2.3, or compatibility mode in 2.4
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+RewriteEngine On
+
+# Block access to asset in specific folders, if we want to also block all asset files in a folder we must include the folder in this rule before the one below
+RewriteRule ^(vendor/phpunit)/ - [F,L]
+
+# Block sensitive folders unconditionally — no condition before this
+RewriteRule ^(var|tests|files|bin|\.git|less|maps|vendor|nbproject|templates|app/config|app/config/api|\.vscode)/ - [F,L]
+
+# If the request is for an actual file (css, js, images etc), serve it directly
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|woff2|woff|ttf|gif|ico)$
+RewriteRule ^ - [L]
+
+
 # Use the front controller as index file. It serves as a fallback solution when
 # every other rewrite/redirect fails (e.g. in an aliased environment without
 # mod_rewrite). Additionally, this reduces the matching process for the
@@ -48,19 +75,10 @@ DirectoryIndex app.php
     RewriteCond %{ENV:REDIRECT_STATUS} ^$
     RewriteRule ^app\.php(?:/(.*)|$) %{ENV:BASE}/$1 [R=301,L]
 
-
-	#deny access to resources in these folders 
-	RedirectMatch 403 (^|/)var/.*$
-	RedirectMatch 403 (^|/)tests/.*$
-	RedirectMatch 403 (^|/)/files/.*$
-	
     # If the requested filename exists, simply serve it.
     # We only want to let Apache serve files and not directories.
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
-
-    #Rewrite old 7.3 /ui reference 
-    RewriteRule ^ui(?:/(.*)|$)  %{ENV:BASE}/ [R=301,NC,L]
 
     # Rewrite all other queries to the front controller.
     RewriteRule ^ %{ENV:BASE}/app.php [L]
@@ -74,4 +92,12 @@ DirectoryIndex app.php
         RedirectMatch 302 ^/$ /app.php/
         # RedirectTemp cannot be used instead
     </IfModule>
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Content Security Policy (CSP) Header, we should still get rid of inline css/js (<script>...</script><style>...</style>)
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data:; font-src 'self';"
+
+    # Anti-clickjacking Header, prevents other sites from embedding this site in an iframe
+    Header always append X-Frame-Options SAMEORIGIN
 </IfModule>

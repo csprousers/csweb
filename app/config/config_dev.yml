@@ -14,25 +14,26 @@ web_profiler:
 monolog:
     channels: ['command']
     handlers:
-        main:
+        # Directly log everything for development. In dev mode level is set to debug does not use the parameter csweb_log_level
+        file_logging:
             type: stream
             path: '%kernel.logs_dir%/ui.%kernel.environment%.log'
-            level: '%csweb_log_level%'
+            level: debug
             channels: ['!event', '!command']
-            
         console:
             type: console
-            process_psr_3_messages: false
+            process_psr_3_messages: true
+            level: debug
             channels: ['!event', '!doctrine', '!console']
-        db:
+        # Database logging as usual, for consistency with base.uses the log level set in the paramaters
+        database_logging:
             type: service
             id: cspro_monolog_handler
             channels: ['!command']
-            
         blob_break_logging:
             type: rotating_file
             path: '%kernel.logs_dir%/cases_process.%kernel.environment%.log'
-            level: '%csweb_process_cases_log_level%'
+            level: debug
             channels: ["command"]
                     
         # To follow logs in real time, execute the following command:

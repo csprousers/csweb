@@ -100,7 +100,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
         }
 
         function directoriesWriteable() {
-            $dirs = array('var', 'app/config', 'src/AppBundle');
+            $dirs = array('var', 'files', 'files_csweb', 'app/config', 'src/');
 
             foreach ($dirs as $d) {
                 $fullPath = realpath(__DIR__ . '/..') . DIRECTORY_SEPARATOR . $d;
@@ -111,7 +111,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
         }
 
         $tests = array(
-            'PHP version 8.0 or above' => version_compare(PHP_VERSION, '8.0') >= 0,
+            'PHP version 8.1 or above' => version_compare(PHP_VERSION, '8.1') >= 0,
             'PHP file_info extension' => function_exists('finfo_open'),
             'PHP pdo extension' => extension_loaded('pdo'),
             'PHP dom extension' => extension_loaded('dom'),
@@ -122,7 +122,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
             'CA bundle (for PHP < 5.6 and no curl)' => canFindGuzzleCABundle(),
             'enable_post_data_reading on in php.ini' => enabledInIniFile('enable_post_data_reading'),
             'post-max-size >= 8M in php.ini' => sizeStringToMegaBytes(ini_get('post_max_size')) >= 8 || sizeStringToMegaBytes(ini_get('post_max_size')) === 0,
-            'var, app/config, src/AppBundle directories are writeable' => directoriesWriteable(),
+            'var, app/config, files, files_csweb, src/ directories are writeable' => directoriesWriteable(),
         );
 
         $showRawPostWarning = false;
