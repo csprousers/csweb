@@ -136,9 +136,9 @@ class DictionaryController extends AbstractController implements ApiTokenAuthent
             return new CSProResponse(json_encode($result, JSON_THROW_ON_ERROR), Response::HTTP_BAD_REQUEST);
         }
         $this->logger->debug("Download sync spec for {$dictName}");
-        $this->denyAccessUnlessGranted(DictionaryVoter::DATA_READ, $dictName);
         try {
             $this->dictHelper->checkDictionaryExists($dictName);
+            $this->denyAccessUnlessGranted(DictionaryVoter::DATA_READ, $dictName);
             $syncURL = $this->getParameter('cspro_rest_api_url');
             $csproVersion = $this->getParameter('cspro_version');
             $csproVersion = substr($csproVersion, 0, 3); //get {Major}.{Minor} version
@@ -152,7 +152,7 @@ class DictionaryController extends AbstractController implements ApiTokenAuthent
             $syncSpec .= "\r\n";
             $syncSpec .= "[Parameters]" . "\r\n";
             $syncSpec .= "SyncDirection=Get" . "\r\n";
-            $syncSpec .= "SyncServer=" . $syncURL . "\r\n";
+            $syncSpec .= "SyncService=" . $syncURL . "\r\n";
             $syncSpec .= "Silent=No" . "\r\n";
 
             $response = new CSProResponse($syncSpec);
@@ -185,7 +185,6 @@ class DictionaryController extends AbstractController implements ApiTokenAuthent
             return new CSProResponse(json_encode($result, JSON_THROW_ON_ERROR), Response::HTTP_BAD_REQUEST);
         }
         $this->logger->debug("Download meta data for {$dictName}");
-        $this->denyAccessUnlessGranted(DictionaryVoter::DATA_READ, $dictName);
 
         $stm = 'SELECT id, dictionary_key_structure FROM cspro_dictionaries WHERE name = :dictName';
         $result = $this->pdo->fetchOne($stm, [ 'dictName' => $dictName ]);
@@ -195,7 +194,7 @@ class DictionaryController extends AbstractController implements ApiTokenAuthent
             $response->setError(404, 'dictionary_not_found', "Dictionary {$dictName} does not exist");
             return $response;
         }
-
+        $this->denyAccessUnlessGranted(DictionaryVoter::DATA_READ, $dictName);
         $metadata = [ 'dictionaryKeyStructure' => $result['dictionary_key_structure'] ?? "" ];
 
         $stm = 'SELECT MAX(revision) AS maxRevision FROM cspro_sync_history WHERE dictionary_id = :dictId';

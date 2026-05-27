@@ -1,5 +1,4 @@
 imports:
-    - { resource: parameters.yml }
     - { resource: parameters.php }
     - { resource: security.yml }
     - { resource: services.yml }
@@ -37,7 +36,8 @@ framework:
         handler_id: session.handler.native_file
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
         storage_factory_id: session.storage.factory.native #https://weblog.yivoff.com/upgrading-from-symfony-5.2-to-5.3/
-    fragments: ~
+    fragments:
+        enabled: false
     http_method_override: true
     assets: ~
     php_errors:

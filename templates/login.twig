@@ -9,7 +9,7 @@
         <meta name="description" content="">
         <meta name="author" content="">
         <meta name="csrf-token" content="{{ csrf_token('csweb_dashboard_token') }}">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; form-action 'self'; base-uri 'self';">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; form-action 'self'; base-uri 'self';">
 
         <link rel='icon' href={{asset('dist/img/favicon.ico')}} type='image/x-icon'/ >
 
@@ -52,7 +52,7 @@
                                     <p class="subtitle-text-cspro">
                                         <img class="center" src={{asset('dist/img/logo_silver.png')}}>
                                     </p>
-                                    <p class="title-text-cspro">CSWeb {{ csproVersion }} (alpha)</p>
+                                    <p class="title-text-cspro">CSWeb {{ csproVersion }}</p>
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="p-5">

@@ -37,7 +37,7 @@ class MessagesController extends AbstractController implements ApiTokenAuthentic
         $stm->execute();
 
         // end users can fill in a response here as desired
-        $messageResponse = [];
+        $messageResponse = null;
 
         return CSProResponse::createJsonResponse($messageResponse);
     }

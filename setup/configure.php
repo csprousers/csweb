@@ -527,6 +527,10 @@ function writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePa
     fwrite($configFile, "define('DEFAULT_TIMEZONE', '$timezone');\n");
     fwrite($configFile, "define('MAX_EXECUTION_TIME', '$maxExecutionTime');\n");
     fwrite($configFile, "define('API_URL', '$apiUrl');\n");
+    // Generate secure random APP_SECRET
+    $appSecret = bin2hex(random_bytes(32)); // 64 character hex string
+    fwrite($configFile, "define('CSWEB_APP_SECRET', '$appSecret');\n");
+    
     fwrite($configFile, "define('CSWEB_LOG_LEVEL' , 'error');\n");
     fwrite($configFile, "define('CSWEB_PROCESS_CASES_LOG_LEVEL', 'error');\n");
     fwrite($configFile, "?>\n");

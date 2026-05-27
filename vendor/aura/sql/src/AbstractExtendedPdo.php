@@ -105,7 +105,10 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function __call(string $name, array $arguments)
     {
-        $this->connect();
+        //Savy for fixing aura/sql breaking change in 8.4+ as PHP introduced static PDO::connect()
+        if ($name === 'connect') {
+            return $this->autoConnect();
+        }
 
         if (! method_exists($this->pdo, $name)) {
             $class = get_class($this);
@@ -127,7 +130,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function beginTransaction(): bool
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $result = $this->pdo->beginTransaction();
         $this->profiler->finish();
@@ -145,7 +148,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function commit(): bool
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $result = $this->pdo->commit();
         $this->profiler->finish();
@@ -158,7 +161,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      *
      * @return void
      */
-    abstract public function connect(): void;
+    abstract public function autoConnect(): void;
 
     /**
      *
@@ -177,7 +180,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function errorCode(): ?string
     {
-        $this->connect();
+        $this->autoConnect();
         return $this->pdo->errorCode();
     }
 
@@ -190,7 +193,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function errorInfo(): array
     {
-        $this->connect();
+        $this->autoConnect();
         return $this->pdo->errorInfo();
     }
 
@@ -207,7 +210,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function exec(string $statement): int|false
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $affectedRows = $this->pdo->exec($statement);
         $this->profiler->finish($statement);
@@ -493,7 +496,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function inTransaction(): bool
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $result = $this->pdo->inTransaction();
         $this->profiler->finish();
@@ -525,7 +528,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function lastInsertId(?string $name = null): string|false
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $result = $this->pdo->lastInsertId($name);
         $this->profiler->finish();
@@ -550,7 +553,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function perform(string $statement, array $values = []): PDOStatement
     {
-        $this->connect();
+        $this->autoConnect();
         $sth = $this->prepareWithValues($statement, $values);
         $this->profiler->start(__FUNCTION__);
         $sth->execute();
@@ -574,7 +577,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function prepare(string $query, array $options = []): PDOStatement|false
     {
-        $this->connect();
+        $this->autoConnect();
         $sth = $this->pdo->prepare($query, $options);
         return $sth;
     }
@@ -610,7 +613,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
             return $this->prepare($statement);
         }
 
-        $this->connect();
+        $this->autoConnect();
 
         // rebuild the statement and values
         $parser = clone $this->parser;
@@ -645,7 +648,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetch_mode_args): PDOStatement|false
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $sth = $this->pdo->query($query, $fetchMode, ...$fetch_mode_args);
         $this->profiler->finish($sth->queryString);
@@ -670,7 +673,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function quote(string|int|array|float|null $value, int $type = self::PARAM_STR): string|false
     {
-        $this->connect();
+        $this->autoConnect();
 
         $value = $value ?? '';
 
@@ -742,7 +745,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function rollBack(): bool
     {
-        $this->connect();
+        $this->autoConnect();
         $this->profiler->start(__FUNCTION__);
         $result = $this->pdo->rollBack();
         $this->profiler->finish();
@@ -992,7 +995,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function getAttribute(int $attribute): bool|int|string|array|null
     {
-        $this->connect();
+        $this->autoConnect();
         return $this->pdo->getAttribute($attribute);
     }
 
@@ -1006,7 +1009,7 @@ abstract class AbstractExtendedPdo extends PDO implements ExtendedPdoInterface
      */
     public function setAttribute(int $attribute, mixed $value): bool
     {
-        $this->connect();
+        $this->autoConnect();
         return $this->pdo->setAttribute($attribute, $value);
     }
 }

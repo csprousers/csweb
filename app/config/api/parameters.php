@@ -3,6 +3,7 @@
 include_once __DIR__ . '/../../../src/config.php';
 include_once __DIR__ . '/../../../src/version.php';
 
+$container->setParameter('secret', CSWEB_APP_SECRET);
 $container->setParameter('database_port', 3306);
 $container->setParameter('database_host', DBHOST);
 $container->setParameter('database_name', DBNAME);

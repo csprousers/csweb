@@ -91,7 +91,7 @@ class ExtendedPdo extends AbstractExtendedPdo
      *
      * @return void
      */
-    public function connect(): void
+    public function autoConnect(): void
     {
         if ($this->pdo) {
             return;
@@ -152,7 +152,7 @@ class ExtendedPdo extends AbstractExtendedPdo
      */
     public function getPdo(): PDO
     {
-        $this->connect();
+        $this->autoConnect();
         return $this->pdo;
     }
 }

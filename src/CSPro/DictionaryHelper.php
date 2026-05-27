@@ -2,6 +2,7 @@
 
 namespace App\CSPro;
 
+
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Psr\Log\LoggerInterface;
@@ -946,7 +947,7 @@ EOT;
         $levelName = strtoupper($level->getName());
         if (isset($caseJSON[$levelName])) {
             $mapMarkerInfo["Case"] = $caseJSON["key"];
-            $questionnaireJSON = json_decode($caseJSON[$levelName], true, 512, JSON_THROW_ON_ERROR);
+            $questionnaireJSON = $caseJSON[$levelName];
 
             //for each item in the id record
             $nameItemMap = [];
@@ -959,7 +960,7 @@ EOT;
             for ($idItem = 0; $idItem < (is_countable($level->getIdItems()) ? count($level->getIdItems()) : 0); $idItem++) {
                 if (array_search($upperItemNames[$idItem], $markerItemList) !== false) {
                     $this->logger->debug("processing item " . $upperItemNames[$idItem]);
-                    $value = $questionnaireJSON["id"][$upperItemNames[$idItem]] ?? "";
+                    $value = $questionnaireJSON[$upperItemNames[$idItem]]["code"] ?? "";
                     $mapMarkerInfo[$this->getDisplayText($level->getIdItems()[$idItem])] = $this->getItemValueDisplayText($level->getIdItems()[$idItem], $value);
                 }
             }
@@ -997,7 +998,7 @@ EOT;
                 $labelOrKey = isset($caseJSON["label"]) && !empty($caseJSON["label"]) ? trim($caseJSON["label"]) : trim($caseJSON["key"]);
                 $caseHtml .= "<p class=\"c2h_level_name\">" . $labelOrKey . "</p>";
             }
-            $questionnaireJSON = json_decode($caseJSON[$levelName], true, 512, JSON_THROW_ON_ERROR);
+            $questionnaireJSON = $caseJSON[$levelName];
             $caseHtml .= $this->formatCaseLevelJSONtoHTML($level, $questionnaireJSON);
             //loop through the records
             for ($iRecord = 0; $iRecord < (is_countable($level->getRecords()) ? count($level->getRecords()) : 0); $iRecord++) {
@@ -1068,11 +1069,8 @@ EOT;
         if (isset($caseJson[$upperRecordName])) {
             //if data rows available
             if (isset($caseJson[$record->getName()])) {
-                if ($record->getMaxRecords() > 1) {//multiple records
-                    $recordList = $caseJson[$upperRecordName];
-                } else {//single record
-                    $recordList[] = $caseJson[$upperRecordName];
-                }
+                $recordList = $caseJson[$upperRecordName];
+               
                 //for each datarow
                 $recordCount = 0;
                 $parentItem = null;

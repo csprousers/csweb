@@ -3,14 +3,24 @@
 <html lang="en">
 
     <head>
-
+        {# CSP also set in .htaccess for Apache. Keep both in sync. #}
+        <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com;
+        style-src 'self' 'unsafe-inline' https://unpkg.com;
+        img-src 'self' data: blob: https://unpkg.com https://*.tile.openstreetmap.org https://*.openstreetmap.org http://*.arcgisonline.com https://*.arcgisonline.com https://*.arcgis.com https://api.mapbox.com https://*.mapbox.com;
+        connect-src 'self' https://unpkg.com https://*.tile.openstreetmap.org https://*.openstreetmap.org http://*.arcgisonline.com https://*.arcgisonline.com https://*.arcgis.com https://api.mapbox.com https://*.mapbox.com https://events.mapbox.com;
+        object-src 'none';
+        form-action 'self';
+        base-uri 'self';">
+        
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="">
         <meta name="author" content="">
         <meta name="csrf-token" content="{{ csrf_token('csweb_dashboard_token') }}">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';img-src 'self' data:;object-src 'none'; form-action 'self'; base-uri 'self';">
+        
         <link rel='icon' href={{asset('dist/img/favicon.ico')}} type='image/x-icon'/>
 
         <title>CSWeb</title>
@@ -36,7 +46,7 @@
             <ul class="navbar-nav navbar-cspro sidebar sidebar-dark accordion" id="side-menu">
                 <a class="sidebar-brand d-flex align-items-center justify-content-center navbar-cspro" href="{{ path('dashboard') }}">
                     <img src={{asset('dist/img/logo_silver.png')}} class="icon" >
-                    <p class="navbar navbar-version">CSWeb {{ csproVersion }} (alpha)</p>
+                    <p class="navbar navbar-version">CSWeb {{ csproVersion }}</p>
                 </a>
                 <!-- Divider -->
                 <hr class="sidebar-divider my-0">

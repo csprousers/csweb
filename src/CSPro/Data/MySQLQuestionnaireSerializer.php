@@ -282,12 +282,14 @@ class MySQLQuestionnaireSerializer {
         $placeholders = implode(', ', array_fill(0, count($this->casesMap), $singlePlaceholder));
 
         $this->logger->debug('serializeQuestionnaireLevel: processing ' . count($this->casesMap) . ' cases to insert');
+        $level = $this->dict->getLevels()[0];
+        $levelName = strtoupper($level->getName());
         foreach ($caseList as $case) {
             $caseJsonArray = $this->casesMap[$case];
             $values[] = $case; //case-id
             foreach ($idItemNames as $idItem) {
-                if (isset($caseJsonArray["id"][$idItem])) {
-                    $values[] = $caseJsonArray["id"][$idItem];
+                if (isset($caseJsonArray[$levelName][$idItem]["code"])) {
+                    $values[] = $caseJsonArray[$levelName][$idItem]["code"];
                 } else {
                     $values[] = null;
                 }
@@ -360,32 +362,30 @@ class MySQLQuestionnaireSerializer {
 
     public function serializeNotes(): int {
         $caseList = array_keys($this->casesMap);
-
-        //select notes for the cases in case map from the source dictionary notes table
-        $sourceNotesTable = '`' . $this->dict->getName() . '_notes`';
-        $stm = 'SELECT LCASE(CONCAT_WS("-", LEFT(HEX( `case_uuid`), 8), MID(HEX(`case_uuid`), 9,4), MID(HEX( `case_uuid`), 13,4), MID(HEX( `case_uuid`), 17,4), RIGHT(HEX( `case_uuid`), 12))) as `case_id`, '
-                . "`operator_id`, `field_name`, `level_key`, `record_occurrence`, `item_occurrence`, `subitem_occurrence`, `content`, `modified_time`	FROM " . $sourceNotesTable . ' WHERE case_uuid IN ( ';
-
-        $whereData = [];
-        $n = 0;
-        // prepare the where clause in list for all the case uuids to delete the notes for the correponding cases
+        $result = [];
         foreach ($caseList as $case) {
-            $strWhere [] = 'UNHEX(REPLACE(' . ":case_uuid$n" . ',"-",""))';
-            $whereData ['case_uuid' . $n] = $case;
-            $n++;
-        }
+            $case = $this->casesMap[$case];
+            if (isset($case["notes"])) {
+                foreach ($case["notes"] as $note) {
+                    $row['case_id'] = $case['uuid'];
+                    $row['field_name'] = $note['name'] ?? "";
+                    $default = $this->dict->getName() ===  $row['field_name'] ? 0 : 1; //case note has no occurrences set
+                    $row['level_key'] = $note['levelKey'] ?? null;
+                    $row['record_occurrence'] = $note['occurrences']['record'] ?? $default;
+                    $row['item_occurrence'] = $note['occurrences']['item'] ?? $default;
+                    $row['subitem_occurrence'] = $note['occurrences']['subitem'] ?? 0;
+                    $row['operator_id'] = $note['operatorId'] ?? null;
 
-        if (!empty($strWhere)) {
-            $stm .= implode(', ', $strWhere);
-            $stm .= ' );';
-        }
+                    $rawTime = $note['modifiedTime'] ?? null;
+                    $timestamp = $rawTime ? strtotime($rawTime) : false;
+                    $row['modified_time'] = $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
 
+                    $row['content'] = $note['text'] ?? "";
+                    $result[] = $row;
+                }
+            }
+        }
         try {
-            $stmt = $this->sourcePdo->prepare($stm);
-            $stmt->execute($whereData);
-
-            $result = $stmt->fetchAll();
-
             if ((is_countable($result) ? count($result) : 0) == 0)
                 return 0;
 
@@ -401,15 +401,7 @@ class MySQLQuestionnaireSerializer {
             $this->logger->debug('Inserting into notes table');
             foreach ($result as $row) {
                 foreach ($itemNames as $itemName) {
-                    if (isset($row[$itemName])) {
-                        if ($itemName === 'modified_time') {
-                            $values[] = date('Y-m-d H:i:s', strtotime($row['modified_time']));
-                        } else {
-                            $values[] = $row[$itemName];
-                        }
-                    } else {
-                        $values[] = null;
-                    }
+                    $values[] = $row[$itemName] ?? null;
                 }
             }
 
@@ -522,18 +514,15 @@ class MySQLQuestionnaireSerializer {
         // (?, ?), ... , (?, ?)
 
         $recordCount = 0;
-
+        $level = $this->dict->getLevels()[0];
+        $levelName = strtoupper($level->getName());
         //get the hashmap of caseIds and their new ids to insert into the records id as foreign key
         foreach ($caseList as $case) {
-            $caseJsonArray = $this->casesMap[$case];
+            $caseJsonArray = $this->casesMap[$case][$levelName];
             $newCaseId = $this->casesIdMap[$case];
             unset($recordList);
             if (isset($caseJsonArray[$record->getName()])) {
-                if ($record->getMaxRecords() > 1) {//multiple records 
-                    $recordList = $caseJsonArray[$record->getName()];
-                } else {//single record
-                    $recordList[] = $caseJsonArray[$record->getName()];
-                }
+                $recordList = $caseJsonArray[$record->getName()];
                 foreach ($recordList as $curRec) {
                     $recordCount++;
                     $values[] = $newCaseId;

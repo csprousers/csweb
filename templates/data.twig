@@ -257,7 +257,7 @@
                                         </td>
                                         <td class="caseCount">{{ dict.caseCount}}</td>
                                         <td style="display: flex; justify-content: center;">
-                                            <a href="cspro://data/{{cspro_rest_api_url}}?dictionaryName={{dict.name}}"><img src="{{asset('dist/img/data-manager.png')}}" class="mr-3"></a>
+                                            <a href="cspro:///data/{{cspro_rest_api_url}}?dictionaryName={{dict.name}}"><img src="{{asset('dist/img/data-manager.png')}}" class="mr-3"></a>
                                             <a href="{{path('downloadDictionary',{'dictname':dict.name}, true)}}" onclick="ui.handleDownload(event, this)"><img src="{{asset('dist/img/pff.png')}}"></a>
                                         </td>
                                         <td style="text-align: center">
