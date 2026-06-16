@@ -35,7 +35,7 @@ class MySQLDictionarySchemaGenerator {
     }
 
     public static function generateColumnType(Item $item): string {
-        if ($item->getDataType() === "Numeric") {
+        if ($item->isNumeric()) {
             return self::COLUMN_TYPE_DECIMAL;
         } else {
             return self::COLUMN_TYPE_TEXT;
@@ -79,6 +79,8 @@ class MySQLDictionarySchemaGenerator {
 
         //create a table using DBAL 
         $levelIdTable = $this->schema->createTable(static::quoteString($levelName));
+        $levelIdTable->addOption('charset', 'utf8mb4');
+        $levelIdTable->addOption('collation', 'utf8mb4_unicode_ci');
         //add columns 
         $autoIncrementFlag = $parentLevel ? false : true;
         $levelIdTable->addColumn(static::quoteString($levelName) . "-id", "integer", ["unsigned" => true, "notnull" => true, "autoincrement" => $autoIncrementFlag]);
@@ -120,6 +122,8 @@ class MySQLDictionarySchemaGenerator {
 
         //create a table using DBAL 
         $recordTable = $this->schema->createTable(strtolower($record->getName()));
+        $recordTable->addOption('charset', 'utf8mb4');
+        $recordTable->addOption('collation', 'utf8mb4_unicode_ci');
         //add columns -added auto increment for MySQL for record-ids 
         $recordTable->addColumn(static::quoteString(strtolower($record->getName()) . "-id"), "integer", ["unsigned" => true, "notnull" => true, "autoincrement" => true]);
         //set primary key on id 
@@ -187,6 +191,8 @@ class MySQLDictionarySchemaGenerator {
           "FOREIGN KEY(last_modified_revision) REFERENCES file_revisions(id)"
           ");\n" */
         $casesTable = $this->schema->createTable(static::quoteString('cases'));
+        $casesTable->addOption('charset', 'utf8mb4');
+        $casesTable->addOption('collation', 'utf8mb4_unicode_ci');
         $casesTable->addColumn(static::quoteString('id'), "text", ["notnull" => true]);
         $casesTable->addColumn(static::quoteString('key'), "text", ["notnull" => true]);
         $casesTable->addColumn(static::quoteString('label'), "text");
@@ -215,6 +221,8 @@ class MySQLDictionarySchemaGenerator {
           ");\n"
           "CREATE INDEX `notes-case-id` ON notes(case_id);"; */
         $notesTable = $this->schema->createTable(static::quoteString('notes'));
+        $notesTable->addOption('charset', 'utf8mb4');
+        $notesTable->addOption('collation', 'utf8mb4_unicode_ci');
         $notesTable->addColumn(static::quoteString('case_id'), "text", ["notnull" => true]);
         $notesTable->addColumn(static::quoteString('field_name'), "text", ["notnull" => true]);
         $notesTable->addColumn(static::quoteString('level_key'), "text", ["notnull" => true]);
@@ -242,6 +250,8 @@ class MySQLDictionarySchemaGenerator {
           PRIMARY KEY (`id`)
           ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; */
         $jobsTable = $this->schema->createTable(static::quoteString('cspro_jobs'));
+        $jobsTable->addOption('charset', 'utf8mb4');
+        $jobsTable->addOption('collation', 'utf8mb4_unicode_ci');
         $jobsTable->addColumn("`id`", "integer", ["unsigned" => true, "notnull" => true, "autoincrement" => true]);
         $jobsTable->addColumn("`start_caseid`", "integer", ["unsigned" => true, "notnull" => true]);
         $jobsTable->addColumn("`start_revision`", "integer", ["unsigned" => true, "notnull" => true]);
@@ -256,6 +266,8 @@ class MySQLDictionarySchemaGenerator {
 
         //Create meta table 
         $metaTable = $this->schema->createTable(static::quoteString('cspro_meta'));
+        $metaTable->addOption('charset', 'utf8mb4');
+        $metaTable->addOption('collation', 'utf8mb4_unicode_ci');
         $metaTable->addColumn("`id`", "integer", ["unsigned" => true, "notnull" => true, "autoincrement" => true]);
         $metaTable->addColumn("`cspro_version`", "text", ["notnull" => true]);
         $metaTable->addColumn("`dictionary`", "text", ["notnull" => true]);

@@ -112,7 +112,7 @@ class DictionaryHelper {
             $dataType = $item->getDataType();
             $itemLength = $item->getLength();
             $keyStructure .= "$itemLength" ."$dataType";
-            if ($dataType === "numeric") {
+            if ($item->isNumeric()) {
                 $keyStructure .= $item->getZeroFill() === true ? 1 : 0;
             }
         }
