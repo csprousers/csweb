@@ -69,7 +69,7 @@ class DictionaryHelper {
     }
 
     function loadDictionary($dictName) {
-        //sanitize dictionary name 
+        //sanitize dictionary name
         $dictName = empty($dictName) ? '' : htmlspecialchars(strip_tags($dictName), ENT_QUOTES, 'UTF-8');
         if (extension_loaded('apcu') && ini_get('apc.enabled')) {
             $bFound = false;
@@ -199,20 +199,20 @@ class DictionaryHelper {
         }
 
         $sql = <<<EOT
-	CREATE TABLE IF NOT EXISTS `$dictName` (
+    CREATE TABLE IF NOT EXISTS `$dictName` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT UNIQUE,
-	`uuid` binary(16) NOT NULL,
-	`key` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-	`label` text COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-    `note` text COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
-	`verified` tinyint(1) unsigned NOT NULL DEFAULT '0',
+    `uuid` binary(16) NOT NULL,
+    `key` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+    `label` text COLLATE utf8mb4_unicode_ci,
+    `note` text COLLATE utf8mb4_unicode_ci,
+    `deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
+    `verified` tinyint(1) unsigned NOT NULL DEFAULT '0',
     `partial_save_mode` varchar(6) NULL,
     `questionnaire` BLOB NOT NULL,
 	`revision` int(11) unsigned NOT NULL,
     `clock` text COLLATE utf8mb4_unicode_ci NOT NULL,
-	`modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	`created_time` timestamp DEFAULT '1971-01-01 00:00:00',
+    `modified_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `created_time` timestamp DEFAULT '1971-01-01 00:00:00',
 EOT;
 
         $trigName = 'tr_' . $dictName;
@@ -1070,7 +1070,7 @@ EOT;
             //if data rows available
             if (isset($caseJson[$record->getName()])) {
                 $recordList = $caseJson[$upperRecordName];
-               
+
                 //for each datarow
                 $recordCount = 0;
                 $parentItem = null;
