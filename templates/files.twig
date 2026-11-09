@@ -169,7 +169,7 @@
                             {% for file in files %}
                             <tr>
                                 <td>
-                                    <input type="checkbox" class="form-control-sm file-select" value="{{ file.link }}" 
+                                    <input type="checkbox" class="form-control-sm file-select" value="{{ file.link }}"
                                            {% if not canManageFiles %}disabled{% endif %} />
                                 </td>
                                 {% if file.is_dir %}
@@ -427,9 +427,10 @@
 
                 request.done(function (data) {
                     $("body").removeClass("loading");
-                    console.log(data);
-                    if (data)
+                    if (data){
                         window.location.assign(data);
+                        setTimeout(function () { $("body").addClass("loading"); }, 0);
+                    }
                 });
 
                 request.fail(function (data, jqXHR, textStatus) {
@@ -454,9 +455,14 @@
                 });
 
                 request.done(function (data) {
-                    $("body").removeClass("loading");
-                    if (data)
+                    if (data) {
                         window.location.reload();
+                        // ajaxComplete clears the spinner right after this; re-add it until the reload lands
+                          setTimeout(function () { $("body").addClass("loading"); }, 0);
+                    }
+                    else{
+                        $("body").removeClass("loading");
+                    }
                 });
 
                 request.fail(function (data, jqXHR, textStatus) {
@@ -579,13 +585,25 @@
                 $('.file-select').length === 0
                 );
 
-        $('#uploadFilesButton').click(function () {
-            $('#file-upload-modal').on('hidden.bs.modal', function () {
-                $("body").addClass("loading");
-            });
+        //use against default form submission to allow for ajax file upload and send csrf token in header
+        $('#uploadFileForm').on('submit', function (e) {
+            e.preventDefault();
             $('#file-upload-modal').modal('hide');
+            $("body").addClass("loading");
+            $.ajax({
+                url: window.location.href,
+                type: "POST",
+                data: new FormData(this),
+                processData: false,
+                contentType: false
+            }).done(function () {
+                window.location.reload();
+            }).fail(function (xhr) {
+                $("body").removeClass("loading");
+                console.log(xhr.status, xhr.statusText);
+                alert2("Upload failed", "Error uploading files", function () {});
+            });
         });
-
         // Restricts input for the given textbox to the given inputFilter.
         function setInputFilter(textbox, inputFilter) {
             ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function (event) {

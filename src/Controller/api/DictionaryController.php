@@ -380,7 +380,7 @@ class DictionaryController extends AbstractController implements ApiTokenAuthent
 
         $stm = 'SELECT EXISTS (SELECT 1 FROM ' . $dictName . ')';
         $result = $this->pdo->fetchValue($stm);
-        $hasData = ($result === 1) ? true : false;
+        $hasData = ((int) $result === 1) ? true : false;
         return $hasData;
     }
 

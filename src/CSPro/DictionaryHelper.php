@@ -56,12 +56,12 @@ class DictionaryHelper {
     public function checkCaseExists($dictName, $uuid) {
         try {
             $this->checkDictionaryExists($dictName);
-            $strIN = '(UNHEX(REPLACE(' . "'$uuid'" . ',"-","")))';
-            $result = $this->pdo->query("SELECT 1 FROM {$dictName} WHERE `uuid` IN {$strIN} ");
+            $stm = "SELECT 1 FROM {$dictName} WHERE `uuid` = UNHEX(REPLACE(:case_uuid, '-', ''))";
+            $result = $this->pdo->fetchAll($stm, ['case_uuid' => $uuid]);
+            return !empty($result);
         } catch (\Exception) {
             return false;
         }
-        return $result !== false;
     }
 
     public function getDictionaryBinaryDataFolder(string $dictName, string $internalFilesFolder): string {

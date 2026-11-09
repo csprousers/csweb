@@ -72,8 +72,8 @@ function validateParameters($databaseName, $host, $databaseUsername, $databasePa
     if (!date_default_timezone_set($timezone)) {
         throw new Exception('Invalid time zone');
     }
-    if ($maxExecutionTime < 0) {
-        throw new Exception('Maximum execution cannot be less than zero');
+    if (!ctype_digit((string) $maxExecutionTime)) {
+        throw new Exception('Maximum execution time must be a whole number of seconds, zero or greater');
     }
 }
 
@@ -495,6 +495,28 @@ EOT;
     $pdo->exec($sql);
 }
 
+// Used by the upgrade path. Confirms that the supplied credentials work and that the
+// database already holds a CSWeb schema, without creating or modifying anything.
+// This keeps the config-writing path from being reached with throwaway values.
+function verifyExistingDatabase($databaseName, $host, $databaseUsername, $databasePassword) {
+    $pdo = new PDO('mysql:host=' . $host . ';dbname=' . $databaseName . ';charset=utf8mb4', $databaseUsername, $databasePassword, array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+
+    $stmt = $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'cspro_config'");
+    if (!$stmt || !$stmt->fetchColumn()) {
+        throw new Exception("Database $databaseName does not contain a CSWeb schema.");
+    }
+
+    $schemaVersion = $pdo->query("SELECT `value` FROM `cspro_config` WHERE `name` = 'schema_version'")->fetchColumn();
+    if ($schemaVersion === false || !is_numeric($schemaVersion)) {
+        throw new Exception("Database $databaseName does not contain a valid CSWeb schema version.");
+    }
+}
+
+// Returns a define() statement for config.php with the value emitted as a properly
+// quoted and escaped PHP string literal. Never interpolate values into the file directly.
+function configDefine($name, $value) {
+    return "define('" . $name . "', " . var_export((string) $value, true) . ");\n";
+}
 function createFilesDirectory($filesDirectory) {
     if (file_exists($filesDirectory)) {
         if (!is_dir($filesDirectory)) {
@@ -516,25 +538,31 @@ function writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePa
     $configFile = @fopen($configFilePath, "w");
     if (!$configFile)
         throw new Exception("Unable to write to file $configFilePath. Check the file permissions for the directory.");
-    fwrite($configFile, "<?php\n");
-    fwrite($configFile, "define('DBHOST', '$host');\n");
-    fwrite($configFile, "define('DBUSER', '$databaseUsername');\n");
-    fwrite($configFile, "define('DBPASS', '$databasePassword');\n");
-    fwrite($configFile, "define('DBNAME', '$databaseName');\n");
-    fwrite($configFile, "define('ENABLE_OAUTH', true);\n");
-    fwrite($configFile, "define('FILES_FOLDER', '$filesDirectory');\n");
-    fwrite($configFile, "define('INTERNAL_FILES_FOLDER', '$interalFilesDirectory');\n");
-    fwrite($configFile, "define('DEFAULT_TIMEZONE', '$timezone');\n");
-    fwrite($configFile, "define('MAX_EXECUTION_TIME', '$maxExecutionTime');\n");
-    fwrite($configFile, "define('API_URL', '$apiUrl');\n");
     // Generate secure random APP_SECRET
     $appSecret = bin2hex(random_bytes(32)); // 64 character hex string
-    fwrite($configFile, "define('CSWEB_APP_SECRET', '$appSecret');\n");
-    
-    fwrite($configFile, "define('CSWEB_LOG_LEVEL' , 'error');\n");
-    fwrite($configFile, "define('CSWEB_PROCESS_CASES_LOG_LEVEL', 'error');\n");
-    fwrite($configFile, "?>\n");
+
+    $contents = "<?php\n"
+            . configDefine('DBHOST', $host)
+            . configDefine('DBUSER', $databaseUsername)
+            . configDefine('DBPASS', $databasePassword)
+            . configDefine('DBNAME', $databaseName)
+            . "define('ENABLE_OAUTH', true);\n"
+            . configDefine('FILES_FOLDER', $filesDirectory)
+            . configDefine('INTERNAL_FILES_FOLDER', $interalFilesDirectory)
+            . configDefine('DEFAULT_TIMEZONE', $timezone)
+            . configDefine('MAX_EXECUTION_TIME', $maxExecutionTime)
+            . configDefine('API_URL', $apiUrl)
+            . configDefine('CSWEB_APP_SECRET', $appSecret)
+            . "define('CSWEB_LOG_LEVEL' , 'error');\n"
+            . "define('CSWEB_PROCESS_CASES_LOG_LEVEL', 'error');\n"
+            . "?>\n";
+
+    $written = fwrite($configFile, $contents);
     fclose($configFile);
+    if ($written === false || $written !== strlen($contents)) {
+        @unlink($configFilePath);
+        throw new Exception("Failed to write to file $configFilePath.");
+    }
 }
 
 // Make sure that we can reach the API url.
@@ -578,6 +606,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         if ($upgrade == 1) {
+            // Upgrade writes the config without creating a database, so require a reachable
+            // database that already holds a CSWeb schema before writing the config file.
+            verifyExistingDatabase($databaseName, $host, $databaseUsername, $databasePassword);
             writeApiConfigFile($databaseName, $host, $databaseUsername, $databasePassword, $adminPassword, $filesDirectory, $interalFilesDirectory, $serverDeviceId, $timezone, $maxExecutionTime, $apiUrl);
             header('Location: ../upgrade/upgrade.php');
         } else {

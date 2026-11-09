@@ -20,8 +20,9 @@ const ui = {
     },
     checkForToastMsg: () => {
         const params = ui.getUrlParams();
-        if (params.msg && params.color) {
-            ui.showAlert(params.msg, params.color);
+        // Only a role name and a fixed action keyword are accepted from the URL. Free-form message text must never come from the URL.
+        if (params.role && ui.roleActions.includes(params.roleAction)) {
+            ui.showRoleAlert(params.role, params.roleAction);
             // We remove the GET params from the URL to avoid showing the alert again on page reload or bookmarking the page
             window.history.replaceState({}, '', `${window.location.pathname}`);
         }
@@ -46,7 +47,19 @@ const ui = {
     toggleLoading: (enable = true) => {
         $('body').toggleClass('loading', enable);
     },
+    roleActions: ['added', 'edited', 'deleted'],
+    // Shows "Role <name> <action> successfully". The name is inserted as text, never as HTML.
+    showRoleAlert(name, action, color = 'green') {
+        const content = $('<span>').append(
+            document.createTextNode('Role '),
+            $('<b>').append($('<i>').text(name)),
+            document.createTextNode(` ${action} successfully`)
+        );
+        ui.showAlert(content, color);
+    },
     // color could be 'green', 'red', 'blue', etc.
+    // message is a string (always rendered as plain text) or a jQuery element built by the caller (rendered as-is).
+    // Never pass untrusted data as an HTML string here.
     showAlert(message, color = 'green') {
         const getAlertClass = (color) => {
             switch (color) {
@@ -61,9 +74,10 @@ const ui = {
                     return 'alert-success';
             }
         }
-        const alert = $('#alert');
-        alert.replaceWith(`<div id="alert" class="alert ${getAlertClass(color)} alert-margin-cspro"> ${message} </div>`);
-        alert.show();
+        const content = typeof message === 'string' ? document.createTextNode(` ${message} `) : message;
+        const newAlert = $('<div>', { id: 'alert', class: `alert ${getAlertClass(color)} alert-margin-cspro` }).append(content);
+        $('#alert').replaceWith(newAlert);
+        newAlert.show();
     },
     populateTables: () => {
         ui.populatePermissionsTable();
@@ -300,7 +314,7 @@ const ui = {
                 setTimeout(() => {
                     console.info('Role Deleted Successfully:', response);
                     ui.toggleLoading(false);
-                    ui.reloadWithGetParams({ msg: `Role <b><i>${role.name}</i></b> deleted successfully`, color: 'green' });
+                    ui.reloadWithGetParams({ role: role.name, roleAction: 'deleted' });
                 }, 1000);
             },
             error: (xhr, status, error) => {
@@ -324,11 +338,11 @@ const ui = {
                 setTimeout(() => {
                     ui.toggleLoading(false);
                     if (!editing) {
-                        ui.reloadWithGetParams({ msg: `Role <b><i>${jsonRoleFrontend.name}</i></b> ${editing ? 'edited' : 'added'} successfully`, color: 'green' });
+                        ui.reloadWithGetParams({ role: jsonRoleFrontend.name, roleAction: 'added' });
                     } else {
                         // We avoid reloading the page and we update the role in the ui.data.roles array
                         $('#modal').modal('hide');
-                        ui.showAlert(`Role <b><i>${jsonRoleFrontend.name}</i></b> ${editing ? 'edited' : 'added'} successfully`, 'green');
+                        ui.showRoleAlert(jsonRoleFrontend.name, 'edited');
                         const idxRole = ui.data.roles.indexOf(ui.data.roles.find(r => r.id === jsonRoleFrontend.id))
                         ui.data.roles[idxRole] = jsonRoleFrontend;
                         // Update roles table after editing

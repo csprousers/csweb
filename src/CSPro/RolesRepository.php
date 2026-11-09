@@ -28,6 +28,9 @@ class RolesRepository {
 
     public function getRoles() {
         $roles = $this->pdo->query('SELECT id, name FROM cspro_roles ORDER BY name')->fetchAll(PdoHelper::FETCH_CLASS, \App\CSPro\User\Role::class);
+        foreach ($roles as $role) {
+            $role->id = (int) $role->id;
+        }
         $this->getRolePermissions($roles);
         return $roles;
     }
@@ -39,10 +42,12 @@ class RolesRepository {
         $stm->bindParam(':role_id', $roleId);
         $stm->execute();
         $roles = $stm->fetchAll(PdoHelper::FETCH_CLASS, \App\CSPro\User\Role::class);
+        foreach ($roles as $role) {
+            $role->id = (int) $role->id;
+        }
         $this->getRolePermissions($roles);
         if (count($roles))
             $role = $roles[0];
-
         return $role;
     }
 
